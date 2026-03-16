@@ -1,6 +1,9 @@
 class Classifier:
-	def __init__(self, model):
-		self.model = model
+	def __init__(self):
+		pass
+
+	def fit(self, X, y):
+		pass
 
 	def predict(self, X):
-		return self.model.predict(X)
+		pass

@@ -1,36 +1,36 @@
 import numpy as np
 from diabetes_risk_prediction.classifier import Classifier
 
+
 class Softmax(Classifier):
-	def __init__(self, learning_rate=0.01, n_iters=1000):
-		self.learning_rate = learning_rate
-		self.n_iters = n_iters
-		self._is_fitted = False
+   def __init__(self, input_dim, l2=0.0):
+      self.input_dim = input_dim
+      self.l2 = l2
+      self.model = self.build_model()
 
-	def fit(self, X, y):
-		n_samples, n_features = X.shape
-		n_classes = len(set(y))
-		self._weights = np.zeros((n_features, n_classes))
-		self._biases = np.zeros(n_classes)
+   def build_model(self):
+      import tensorflow as tf
 
-		for _ in range(self.n_iters):
-			scores = np.dot(X, self._weights) + self._biases
-			probs = self._softmax(scores)
-			probs[range(n_samples), y] -= 1
-			dW = np.dot(X.T, probs) / n_samples
-			db = np.sum(probs, axis=0) / n_samples
-			self._weights -= self.learning_rate * dW
-			self._biases -= self.learning_rate * db
+      model = tf.keras.Sequential([
+			tf.keras.layers.Input(shape=(self.input_dim,)),
+			tf.keras.layers.Dense(
+				3,
+				activation='softmax',
+				kernel_regularizer=tf.keras.regularizers.l2(self.l2)
+			)
+      ])
 
-		self._is_fitted = True
+      model.compile(
+			optimizer='adam',
+			loss='sparse_categorical_crossentropy',
+			metrics=['accuracy']
+      )
 
-	def predict(self, X):
-		if not self._is_fitted:
-			raise Exception("Model is not fitted yet.")
-		scores = np.dot(X, self._weights) + self._biases
-		probs = self._softmax(scores)
-		return np.argmax(probs, axis=1)
+      return model
 
-	def _softmax(self, scores):
-		exp_scores = np.exp(scores - np.max(scores, axis=1, keepdims=True))
-		return exp_scores / np.sum(exp_scores, axis=1, keepdims=True)
+   def fit(self, X, y, epochs=100, batch_size=32):
+      self.model.fit(X, y, epochs=epochs, batch_size=batch_size, verbose=0)
+
+   def predict(self, X):
+      probabilities = self.model.predict(X)
+      return np.argmax(probabilities, axis=1)

@@ -105,7 +105,7 @@ def fnn_hyperparameter_tuner(dataset_path,
    return results, best
 
 
-dataset_path = "diabetes.csv"
+dataset_path = "C:\\COLLEGE\\Term_8\\pattern\\ML\\diabetes_risk_prediction\\data\\diabetes_012_health_indicators_BRFSS2015.csv"
 results, best_config = fnn_hyperparameter_tuner(
     dataset_path,
     hidden_layers_options=[[64, 32, 16], [128, 64, 32], [128, 64, 32, 16]],

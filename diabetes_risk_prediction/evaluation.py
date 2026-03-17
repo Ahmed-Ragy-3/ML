@@ -3,9 +3,11 @@ from sklearn.metrics import accuracy_score, f1_score, confusion_matrix
 import matplotlib.pyplot as plt
 import seaborn as sns
 
+from classifier import Classifier
+
 class ModelEvaluator:
-   def __init__(self, model, x_test, y_test):
-      self.model = model
+   def __init__(self, model: Classifier, x_test, y_test):
+      self.model: Classifier = model
       self.x_test = x_test
       self.y_test = y_test
       self.y_pred = None
@@ -13,6 +15,8 @@ class ModelEvaluator:
    def evaluate(self):
       """Run predictions and compute all metrics."""
       self.y_pred = self.model.predict(self.x_test)
+      print("Predictions:", self.y_pred)
+      print("True Labels:", self.y_test)
       results = {
 			"accuracy": self.compute_accuracy(),
 			"f1_micro": self.compute_f1(average="micro"),
@@ -35,3 +39,4 @@ class ModelEvaluator:
       plt.xlabel("Predicted")
       plt.ylabel("Actual")
       plt.show()
+

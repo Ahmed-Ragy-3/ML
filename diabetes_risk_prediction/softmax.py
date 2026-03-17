@@ -1,6 +1,5 @@
 import numpy as np
-from diabetes_risk_prediction.classifier import Classifier
-
+from classifier import Classifier
 
 class Softmax(Classifier):
    def __init__(self, input_dim, l2=0.0):
@@ -28,7 +27,7 @@ class Softmax(Classifier):
 
       return model
 
-   def fit(self, X, y, epochs=100, batch_size=32):
+   def fit(self, X, y, epochs=10, batch_size=32):
       self.model.fit(X, y, epochs=epochs, batch_size=batch_size, verbose=0)
 
    def predict(self, X):

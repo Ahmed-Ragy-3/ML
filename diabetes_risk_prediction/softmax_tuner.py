@@ -17,7 +17,7 @@ def plot_confusion(y_true, y_pred, title="Confusion Matrix"):
 def softmax_full_tuner_with_metrics(dataset_path,
                                     l2_values=[0.0, 0.001, 0.01, 0.1],
                                     imbalance_methods=['oversample', 'undersample', None],
-                                    epochs_list=[20, 50],
+                                    epochs_list=[3, 5],
                                     batch_sizes=[32, 64]):
     results = []
 
@@ -84,6 +84,6 @@ results, best_config = softmax_full_tuner_with_metrics(
     dataset_path,
     l2_values=[0.0, 0.001, 0.01, 0.1],
     imbalance_methods=['oversample', 'undersample', None],
-    epochs_list=[20, 50],
+    epochs_list=[3, 5],
     batch_sizes=[32, 64]
 )

@@ -8,13 +8,15 @@ class Dataset:
    TEST_SIZE = 0.2
    VAL_SIZE = 0.1
 
-   def __init__(self, path, imbalance_method: str = None, feature_scale: bool = False, feature_selection: bool = False):
+   def __init__(self, path, imbalance_method: str = None, feature_scale: bool = False, feature_selection: bool = False,
+                pca_components: int = 10):
       self.path = path
       self.data = None
 
       self.imbalance_method: str = imbalance_method
       self.feature_scale: bool = feature_scale
       self.feature_selection: bool = feature_selection
+      self.pca_components: int = pca_components
 
    def prepare(self):
       self._load_data()
@@ -100,7 +102,7 @@ class Dataset:
          x_test (_type_): _description_
       """
       from sklearn.decomposition import PCA
-      pca = PCA(n_components=10)
+      pca = PCA(n_components=self.pca_components)
       self.x_train = pca.fit_transform(self.x_train)
       self.x_val = pca.transform(self.x_val)
       self.x_test = pca.transform(self.x_test)

@@ -41,7 +41,7 @@ class FNN(Classifier):
 
 		return model
 
-	def fit(self, epochs=50, batch_size=32):
+	def fit(self, epochs=50, batch_size=32, callbacks=None):
 		import tensorflow as tf
 
 		early_stopping = tf.keras.callbacks.EarlyStopping(
@@ -50,12 +50,14 @@ class FNN(Classifier):
 			restore_best_weights=True
 		)
 
+		all_callbacks = [early_stopping] + (callbacks or [])
+
 		history = self.model.fit(
 			self.dataset.x_train, self.dataset.y_train,
 			validation_data=(self.dataset.x_val, self.dataset.y_val),
 			epochs=epochs,
 			batch_size=batch_size,
-			callbacks=[early_stopping],
+			callbacks=all_callbacks,
 			verbose=1
 		)
 		return history

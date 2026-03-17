@@ -1,0 +1,2 @@
+pca,imbalance,hidden_layers,activations,l2,dropout,epochs,batch_size,accuracy,f1_micro,f1_macro,f1_weighted
+,oversample,"[64, 32]","['sigmoid', 'sigmoid']",0.001,0.2,20,64,0.6334358246609902,0.6334358246609902,0.4250174855267355,0.7100418842316966

@@ -9,9 +9,11 @@ class KNN(Classifier):
 		self.dist = dist
 		self.dataset: Dataset = dataset
 
-	def fit(self, X, y):
-		self.X_train = X
-		self.y_train = y
+	def set_k(self, k):
+		self.k = k
+	
+	def set_dist(self, dist):
+		self.dist = dist
 
 	def predict(self, X):
 		y_pred = [self._predict(x) for x in X]
@@ -19,11 +21,11 @@ class KNN(Classifier):
 
 	def _predict(self, x):
 		if self.dist == 'euclidean_distance':
-			distances = np.linalg.norm(self.X_train - x, axis=1)
+			distances = np.linalg.norm(self.dataset.x_train - x, axis=1)
 		else:
-			distances = np.sum(np.abs(self.X_train - x), axis=1)
+			distances = np.sum(np.abs(self.dataset.x_train - x), axis=1)
 
 		k_indices = np.argpartition(distances, self.k)[:self.k]
-		k_nearest_labels = self.y_train[k_indices]
+		k_nearest_labels = self.dataset.y_train[k_indices]
 
 		return Counter(k_nearest_labels).most_common(1)[0][0]

@@ -1,5 +1,5 @@
 from classifier import Classifier
-from diabetes_risk_prediction.dataset import Dataset
+from dataset import Dataset
 
 class FNN(Classifier):
 	def __init__(self, dataset: Dataset, hidden_layers=[64, 32, 16], activations=['relu', 'relu', 'relu'], l2=0.0, dropout=0.0):

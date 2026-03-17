@@ -1,34 +1,88 @@
-
-from dataset import LABEL, Dataset
-from fnn import FNN
+# predict_point.py
+import os
+import pickle
+import numpy as np
+from dataset import Dataset
+from knn import KNN
 from softmax import Softmax
-# from knn import KNN
-from evaluation import ModelEvaluator
+from fnn import FNN
 
-dataset_path = "C:\\COLLEGE\\Term_8\\pattern\\ML\\diabetes_risk_prediction\\data\\diabetes_012_health_indicators_BRFSS2015.csv"  # Update with the actual path to your dataset
+# Paths for saved models/configs
+FNN_MODEL_DIR = "best_fnn_model"
+SOFTMAX_MODEL_DIR = "best_softmax_model"
+KNN_BEST_CONFIG_FILE = "knn_best_config.pkl"
 
-def main():
-	print("Testing KNN Classifier on Diabetes Dataset...")
-	# dataset_path = "./data/diabetes_012_health_indicators_BRFSS2015.csv"
-	dataset = Dataset(dataset_path, imbalance_method='oversample', feature_scale=True, feature_selection=True)
-	dataset.prepare()
+DATASET_PATH = "C:\\COLLEGE\\Term_8\\pattern\\ML\\diabetes_risk_prediction\\data\\diabetes_012_health_indicators_BRFSS2015.csv"
 
-	# Choose distance metric: euclidean_distance or manhattan_distance
-	# knn = KNN(dist='euclidean_distance', k=5)
-	# knn.fit(x_train_scaled, y_train)
+def load_dataset():
+    ds = Dataset(path=DATASET_PATH, feature_scale=True)
+    ds.prepare()
+    return ds
 
-	# softmax = Softmax(input_dim=x_train_scaled.shape[1], l2=0.0)
-	# softmax.fit(x_train_scaled, y_train)
+def load_fnn(ds: Dataset):
+    import tensorflow as tf
+    if os.path.exists(FNN_MODEL_DIR):
+        fnn = FNN(dataset=ds)
+        fnn.model = tf.keras.models.load_model(FNN_MODEL_DIR)
+        return fnn
+    else:
+        print("No saved FNN model found!")
+        return None
 
-	fnn = FNN(input_dim=x_train_scaled.shape[1], hidden_layers=[64, 32, 16], activations=['relu', 'relu', 'relu'], l2=0.01, dropout=0.2)
-	fnn.fit(x_train_scaled, y_train, x_val_scaled, y_val, epochs=20, batch_size=32)
+def load_softmax(ds: Dataset):
+    import tensorflow as tf
+    if os.path.exists(SOFTMAX_MODEL_DIR):
+        sm = Softmax(input_dim=ds.input_dim())
+        sm.model = tf.keras.models.load_model(SOFTMAX_MODEL_DIR)
+        return sm
+    else:
+        print("No saved Softmax model found!")
+        return None
 
-	evaluator = ModelEvaluator(fnn, x_test_scaled, y_test)
-	results = evaluator.evaluate()
-	print("Evaluation Results:")
-	for metric, value in results.items():
-		print(f"{metric}: {value:.4f}")
-	evaluator.plot_confusion_matrix()
+def load_knn(ds: Dataset):
+    if os.path.exists(KNN_BEST_CONFIG_FILE):
+        with open(KNN_BEST_CONFIG_FILE, 'rb') as f:
+            best_config = pickle.load(f)
+        knn = KNN(dataset=ds)
+        knn.set_k(best_config['k'])
+        knn.set_dist(best_config['distance'])
+        if best_config['balance_method']:
+            ds.handle_imbalance(best_config['balance_method'])
+        knn.fit(ds.x_train, ds.y_train)
+        return knn
+    else:
+        print("No saved KNN config found!")
+        return None
+
+def predict_point(x_point: np.ndarray):
+    """
+    x_point: 1D numpy array of feature values (shape: [n_features])
+    """
+    ds = load_dataset()
+    
+    x_point = x_point.reshape(1, -1)  # reshape for single sample
+
+    fnn_model = load_fnn(ds)
+    softmax_model = load_softmax(ds)
+    knn_model = load_knn(ds)
+
+    predictions = {}
+
+    if fnn_model:
+        predictions['FNN'] = fnn_model.predict(x_point)[0]
+
+    if softmax_model:
+        predictions['Softmax'] = softmax_model.predict(x_point)[0]
+
+    if knn_model:
+        predictions['KNN'] = knn_model.predict(x_point)[0]
+
+    return predictions
 
 if __name__ == "__main__":
-	main()
+    # Example: a dummy feature vector
+    sample_point = np.array([0.5, 0.2, 0.3, 0.1, 0.7, 0.4, 0.9, 0.8, 0.2, 0.1])
+    preds = predict_point(sample_point)
+    print("Predictions for input point:")
+    for model_name, pred in preds.items():
+        print(f"{model_name}: {pred}")

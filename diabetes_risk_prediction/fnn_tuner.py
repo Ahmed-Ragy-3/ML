@@ -20,7 +20,8 @@ SEARCH_SPACE = {
     "l2": [0.1],
 
     "dropout": [0.4],
-    "imbalance": ['oversample'],
+   #  "imbalance": ['oversample'],
+    "imbalance": [None],
     "pca": [10],
 
     "epochs": [10],

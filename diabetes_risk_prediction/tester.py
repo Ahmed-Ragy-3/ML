@@ -14,7 +14,7 @@ from fnn import FNN
 DATASET_PATH = "C:\\COLLEGE\\Term_8\\pattern\\ML\\diabetes_risk_prediction\\data\\diabetes_012_health_indicators_BRFSS2015.csv"
 
 # Paths where models/results are saved
-FNN_MODEL_DIR = "best_fnn_model"
+FNN_MODEL_DIR = "C:\\COLLEGE\\Term_8\\pattern\\ML\\diabetes_risk_prediction\\best_fnn_model.keras"
 FNN_RESULTS_FILE = "fnn_results.pkl"
 FNN_BEST_CONFIG_FILE = "fnn_best_config.pkl"
 
@@ -54,7 +54,13 @@ def evaluate_model(name, model, x_test, y_test):
 
 
 def load_dataset():
-   ds = Dataset(path=DATASET_PATH, feature_scale=True)
+   ds = Dataset(
+      path=DATASET_PATH,
+      feature_scale=True,
+      feature_selection=True,       # ✅ enable PCA
+      pca_components=10,            # ✅ same as training
+      imbalance_method='oversample'  # ✅ same as training
+   )
    ds.prepare()
    return ds
 
@@ -108,14 +114,14 @@ def main():
       evaluate_model("FNN", fnn_model, ds.x_test, ds.y_test)
 
    # Load and test Softmax
-   softmax_model = load_softmax_model(ds)
-   if softmax_model:
-      evaluate_model("Softmax", softmax_model, ds.x_test, ds.y_test)
+   # softmax_model = load_softmax_model(ds)
+   # if softmax_model:
+   #    evaluate_model("Softmax", softmax_model, ds.x_test, ds.y_test)
 
    # Load and test KNN
-   knn_model = load_knn_model(ds)
-   if knn_model:
-      evaluate_model("KNN", knn_model, ds.x_test, ds.y_test)
+   # knn_model = load_knn_model(ds)
+   # if knn_model:
+   #    evaluate_model("KNN", knn_model, ds.x_test, ds.y_test)
 
 
 if __name__ == "__main__":

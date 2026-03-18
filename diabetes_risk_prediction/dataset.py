@@ -39,7 +39,7 @@ class Dataset:
          self._dimensionality_reduction()
 
       if self.imbalance_method:
-         self._handle_imbalance(method=self.imbalance_method)
+         self.handle_imbalance(method=self.imbalance_method)
 
    def _load_data(self):
       import pandas as pd

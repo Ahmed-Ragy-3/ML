@@ -1,0 +1,768 @@
+\documentclass[12pt,a4paper]{article}
+
+% ─── Packages ────────────────────────────────────────────────────────────────
+\usepackage[margin=2.5cm]{geometry}
+\usepackage{amsmath, amssymb}
+\usepackage{graphicx}
+\usepackage{booktabs}
+\usepackage{array}
+\usepackage{multirow}
+\usepackage{xcolor}
+\usepackage{hyperref}
+\usepackage{caption}
+\usepackage{subcaption}
+\usepackage{float}
+\usepackage{enumitem}
+\usepackage{titlesec}
+\usepackage{fancyhdr}
+\usepackage{parskip}
+
+% ─── Colors ──────────────────────────────────────────────────────────────────
+\definecolor{alexblue}{RGB}{0, 51, 102}
+
+% ─── Header / Footer ─────────────────────────────────────────────────────────
+\pagestyle{fancy}
+\fancyhf{}
+\rhead{\small CSE: Pattern Recognition}
+\lhead{\small Alexandria University}
+\cfoot{\thepage}
+\renewcommand{\headrulewidth}{0.4pt}
+\setlength{\headheight}{14.5pt}
+
+% ─── Section Formatting ──────────────────────────────────────────────────────
+\titleformat{\section}{\large\bfseries\color{alexblue}}{\thesection}{1em}{}[\titlerule]
+\titleformat{\subsection}{\normalsize\bfseries\color{alexblue}}{\thesubsection}{1em}{}
+\titleformat{\subsubsection}{\normalsize\itshape\color{alexblue}}{\thesubsubsection}{1em}{}
+
+% ─── Hyperref ────────────────────────────────────────────────────────────────
+\hypersetup{
+    colorlinks=true,
+    linkcolor=alexblue,
+    urlcolor=alexblue,
+    citecolor=alexblue,
+    pdftitle={Assignment 1: Multi-class Diabetes Risk Prediction},
+    pdfauthor={Group X}
+}
+
+% ═════════════════════════════════════════════════════════════════════════════
+\begin{document}
+
+% ─── Title Page ──────────────────────────────────────────────────────────────
+\begin{titlepage}
+    \centering
+    \vspace*{1cm}
+    {\Large\textbf{Alexandria University}\\[0.3em]
+     \large Faculty of Engineering\\[0.2em]
+     Computer and Systems Engineering Department}\\[1.5cm]
+    \rule{\linewidth}{0.5mm}\\[0.4cm]
+    {\LARGE\textbf{Assignment \#1}\\[0.3em]
+     \Large Multi-class Diabetes Risk Prediction}\\[0.4cm]
+    \rule{\linewidth}{0.5mm}\\[1.5cm]
+    {\large\textbf{Course:} CSE: Pattern Recognition}\\[0.5em]
+    {\large\textbf{Supervisors:} Prof.\ Dr.\ Marwan Torki \quad\&\quad Eng.\ Nour Eddine}\\[2cm]
+    {\large\textbf{Group Members:}\\[0.5em]
+    \begin{tabular}{ll}
+        Student Name 1 & ID: XXXXXXXX \\
+        Student Name 2 & ID: XXXXXXXX \\
+        Student Name 3 & ID: XXXXXXXX \\
+    \end{tabular}}\\[2cm]
+    {\large\textbf{Date Assigned:} Wed, Mar.\ 04, 2026\\[0.3em]
+           \textbf{Date Submitted:} Wed, Mar.\ 18, 2026}
+    \vfill
+\end{titlepage}
+
+% ─── Table of Contents ───────────────────────────────────────────────────────
+\tableofcontents
+\newpage
+
+% ═════════════════════════════════════════════════════════════════════════════
+\section{Introduction}
+
+Diabetes mellitus is a chronic metabolic disorder that poses a significant global health burden. Early and accurate risk classification enables timely clinical interventions that can reduce long-term complications. This report presents a complete machine learning pipeline for \textbf{multi-class diabetes risk prediction} using the BRFSS 2015 012 dataset from Kaggle.
+
+The dataset contains 21 patient survey features (binary, ordinal, and continuous) and a three-class target variable: \textbf{0 -- No Diabetes}, \textbf{1 -- Prediabetes}, and \textbf{2 -- Diabetes}. The dataset suffers from severe class imbalance: the Prediabetes class constitutes only $\sim$1.8\% of all samples, which causes standard classifiers to ignore it entirely.
+
+To address this challenge, the following pipeline was implemented and applied consistently across all models:
+\begin{itemize}
+    \item \textbf{Standardization:} All 21 features are normalized using \texttt{StandardScaler} (zero mean, unit variance) before any further processing.
+    \item \textbf{Dimensionality reduction:} Principal Component Analysis (PCA) is applied to project the standardized features into a lower-dimensional subspace. The number of retained components is tuned per model.
+    \item \textbf{Imbalance handling:} Two strategies are evaluated -- SMOTE (synthetic oversampling) and random undersampling -- with the best strategy selected via the validation set.
+    \item \textbf{Hyperparameter tuning:} All hyperparameters are selected using the validation set. The test set is used exclusively for final evaluation.
+\end{itemize}
+
+Three classifiers are implemented and compared:
+\begin{enumerate}[leftmargin=2cm]
+    \item \textbf{Softmax Regression} -- a linear probabilistic model generalized to multi-class output
+    \item \textbf{K-Nearest Neighbors (KNN)} -- a non-parametric distance-based classifier
+    \item \textbf{Custom Feedforward Neural Network (FNN)} -- a non-linear deep model with fully connected layers
+\end{enumerate}
+
+For each model, a \textit{baseline} version (trained on the raw imbalanced data) and a \textit{balanced} version (trained with the chosen imbalance handling technique) are evaluated and compared, to quantify the direct impact of imbalance correction.
+
+% ═════════════════════════════════════════════════════════════════════════════
+\section{Dataset and Preparation}
+
+\subsection{Dataset Overview}
+
+The \textbf{Diabetes Health Indicators Dataset} (BRFSS 2015 012) consists of survey-based health indicators collected from U.S.\ adults. Table~\ref{tab:dataset_overview} summarizes the key properties of the dataset.
+
+\begin{table}[H]
+    \centering
+    \caption{Dataset Overview}
+    \label{tab:dataset_overview}
+    \begin{tabular}{ll}
+        \toprule
+        \textbf{Property} & \textbf{Value} \\
+        \midrule
+        Total samples          & 253,680 \\
+        Number of features     & 21 \\
+        Target classes         & 3 (No Diabetes, Prediabetes, Diabetes) \\
+        Class 0 -- No Diabetes & $\sim$213,703 \ (84.2\%) \\
+        Class 1 -- Prediabetes & $\sim$4,631 \ (1.8\%) \\
+        Class 2 -- Diabetes    & $\sim$35,346 \ (13.9\%) \\
+        \bottomrule
+    \end{tabular}
+\end{table}
+
+\subsection{Data Splitting}
+
+A fixed random seed of \texttt{42} is used for all random operations to ensure full reproducibility. The dataset is partitioned using \textbf{stratified splitting}, which preserves the original class distribution in every subset:
+
+\begin{itemize}
+    \item \textbf{Training set:} 70\% -- used for model fitting and SMOTE oversampling
+    \item \textbf{Validation set:} 10\% -- used exclusively for hyperparameter tuning and model selection
+    \item \textbf{Test set:} 20\% -- used exclusively for final performance evaluation
+\end{itemize}
+
+\subsection{Feature Preprocessing}
+
+All 21 features are standardized using \texttt{StandardScaler}, which transforms each feature to zero mean and unit variance:
+\begin{equation}
+    x_{\text{scaled}} = \frac{x - \mu}{\sigma}
+\end{equation}
+The scaler is fit on the training set only and applied as a fixed transformation to the validation and test sets, preventing any leakage of test-set statistics. Standardization is essential for both KNN (which is sensitive to feature scales in distance computation) and the neural network (which requires well-conditioned inputs for gradient-based optimization), and also conditions the PCA decomposition correctly.
+
+\subsection{Dimensionality Reduction via PCA}
+
+Principal Component Analysis (PCA) is applied to the standardized features to project the 21-dimensional input onto a lower-dimensional subspace of $d_{\text{PCA}}$ principal components. PCA identifies orthogonal directions of maximum variance and discards the trailing low-variance components, which tend to capture noise and measurement artefacts rather than class-discriminative structure. It also reduces multicollinearity between correlated health indicators (e.g., BMI and physical health status, or high blood pressure and heart disease history).
+
+PCA is fit on the training set only and applied as a fixed transformation to the validation and test sets. The number of retained components $d_{\text{PCA}}$ is treated as a tunable hyperparameter, selected independently for each model.
+
+\subsection{Handling Class Imbalance}
+
+The extreme class imbalance (Prediabetes: 1.8\%, Diabetes: 13.9\%, No Diabetes: 84.2\%) causes standard classifiers to collapse toward the majority class. Two correction strategies are evaluated for each model:
+
+\begin{itemize}
+    \item \textbf{SMOTE (Synthetic Minority Over-sampling Technique):} Generates synthetic minority-class samples by interpolating between existing minority instances in the PCA-reduced feature space. The training set size increases, preserving all original majority-class samples.
+    \item \textbf{Random Undersampling:} Randomly discards majority-class training samples to equalize class counts, reducing the training set size significantly.
+\end{itemize}
+
+Both strategies are applied exclusively to the training set. The validation and test sets remain unchanged to preserve realistic evaluation conditions. The best strategy is selected per model based on validation Macro-F1.
+
+% ═════════════════════════════════════════════════════════════════════════════
+\section{Model 1: Softmax Regression}
+
+\subsection{Method Overview}
+
+Softmax Regression (multinomial logistic regression) generalizes binary logistic regression to $K$-class problems. For an input vector $\mathbf{x} \in \mathbb{R}^d$, the model computes the posterior probability of class $k$ as:
+
+\begin{equation}
+    P(y = k \mid \mathbf{x}) = \frac{e^{\,\mathbf{w}_k^{\top}\mathbf{x} + b_k}}
+    {\displaystyle\sum_{j=0}^{K-1} e^{\,\mathbf{w}_j^{\top}\mathbf{x} + b_j}},
+    \quad k \in \{0,\, 1,\, 2\}
+\end{equation}
+
+Training minimizes the sparse categorical cross-entropy loss with an L2 weight-decay penalty:
+
+\begin{equation}
+    \mathcal{L} = -\frac{1}{N}\sum_{i=1}^{N}\log P(y = y_i \mid \mathbf{x}_i)
+    + \lambda \lVert\mathbf{W}\rVert_F^2
+\end{equation}
+
+where $\lambda$ is the L2 regularization coefficient. The model is implemented as a single \texttt{Dense(3, activation='softmax')} layer trained with the Adam optimizer. Because it consists of a single linear transformation followed by softmax, it is a purely \textbf{linear classifier} that partitions the feature space with hyperplanes.
+
+\subsection{Baseline Model (No Imbalance Handling)}
+
+The Softmax Regression is first trained on the raw imbalanced training set, with no correction for class distribution. The baseline uses PCA = 15 and $\lambda = 0.15$ (the same settings as the final model, determined by the tuning process described in Section~\ref{sec:softmax_tuning}), so that the only variable across the two conditions is the imbalance handling strategy. This ensures a controlled and fair comparison.
+
+\subsubsection{Baseline Results}
+
+\begin{center}
+    \textbf{Validation:}\ \ Accuracy: 0.8457\quad Micro-F1: 0.8457\quad Macro-F1: \textbf{0.3361}\quad Weighted-F1: 0.7844
+\end{center}
+
+\begin{figure}[H]
+    \centering
+    \begin{subfigure}[b]{0.48\textwidth}
+        \includegraphics[width=\textwidth]{softmax_baseline_val_cm.png}
+        \caption{Validation Set}
+        \label{fig:softmax_base_val_cm}
+    \end{subfigure}
+    \hfill
+    \begin{subfigure}[b]{0.48\textwidth}
+        \includegraphics[width=\textwidth]{softmax_baseline_test_cm.png}
+        \caption{Test Set}
+        \label{fig:softmax_base_test_cm}
+    \end{subfigure}
+    \caption{Softmax Regression -- Baseline Confusion Matrices (No Imbalance Handling, PCA=15, $\lambda$=0.15)}
+    \label{fig:softmax_baseline_cms}
+\end{figure}
+
+The baseline confusion matrices reveal a textbook manifestation of \textbf{majority-class collapse}:
+
+\begin{itemize}
+    \item \textbf{Class 0 -- No Diabetes:} Near-perfect recall of \textbf{99.6\%} (21,283/21,370 on validation; 42,587/42,742 on test). The model has learned to predict Class~0 for almost every input, exploiting the dominant class to minimize the cross-entropy loss.
+
+    \item \textbf{Class 1 -- Prediabetes:} \textbf{Zero correct predictions} on both sets (0/463 on validation; 0/926 on test). The predicted Class~1 column is entirely zero in both matrices. The minority class is completely invisible to the model.
+
+    \item \textbf{Class 2 -- Diabetes:} Recall of only \textbf{4.6\%} on validation (162/3,535) and \textbf{3.9\%} on test (276/7,069). Over 95\% of diabetic patients are misclassified as No Diabetes.
+\end{itemize}
+
+\begin{table}[H]
+    \centering
+    \caption{Softmax Regression -- Baseline Test Set Performance}
+    \label{tab:softmax_baseline_final}
+    \begin{tabular}{lc}
+        \toprule
+        \textbf{Metric} & \textbf{Value} \\
+        \midrule
+        Accuracy    & 0.8448 \\
+        Micro-F1    & 0.8448 \\
+        Macro-F1    & \textbf{0.3297} \\
+        Weighted-F1 & 0.7815 \\
+        \bottomrule
+    \end{tabular}
+\end{table}
+
+The high accuracy (0.8448) is entirely attributable to near-exclusive prediction of Class~0. The Macro-F1 of \textbf{0.3297} exposes the model's true failure: an F1 of 0.00 on Class~1 and approximately 0.07 on Class~2 drag the unweighted average down severely. This result makes a compelling case for imbalance correction.
+
+\subsection{Imbalance Strategy Selection}
+
+Both SMOTE and random undersampling were evaluated by running the full hyperparameter grid (PCA $\in \{5, 10, 21\}$, $\lambda \in \{0.000, 0.001, 0.010, 0.100\}$, epochs $\in \{3, 5\}$, batch size $\in \{32, 64\}$) under each strategy and averaging the validation metrics across all combinations. Table~\ref{tab:imbalance_compare} summarizes the results.
+
+\begin{table}[H]
+    \centering
+    \caption{Softmax Regression -- Average Validation Performance by Imbalance Strategy}
+    \label{tab:imbalance_compare}
+    \begin{tabular}{lccc}
+        \toprule
+        \textbf{Strategy} & \textbf{Avg.\ Accuracy} & \textbf{Avg.\ Macro-F1} & \textbf{Avg.\ Weighted-F1} \\
+        \midrule
+        No Handling (Baseline) & 0.8474 & 0.3877 & 0.8053 \\
+        SMOTE (Oversampling)   & 0.6561 & 0.4284 & 0.7270 \\
+        Random Undersampling   & 0.6052 & 0.4017 & 0.6834 \\
+        \bottomrule
+    \end{tabular}
+\end{table}
+
+SMOTE yields the highest average Macro-F1 (0.428) with consistent performance across all hyperparameter combinations. Random undersampling achieves lower Macro-F1 (0.402) with high variance: drastically reducing the training set makes gradient estimates highly sensitive to batch composition, causing unstable convergence. \textbf{SMOTE is therefore selected} as the imbalance handling strategy for Softmax Regression.
+
+\subsection{Hyperparameter Tuning}
+\label{sec:softmax_tuning}
+
+A grid search is conducted over the validation set under the SMOTE setting. Tables~\ref{tab:softmax_pca_effect} and~\ref{tab:softmax_l2_effect} report the marginal effect of each hyperparameter axis, averaged over all other dimensions.
+
+\begin{table}[H]
+    \centering
+    \caption{Effect of PCA Components on Validation Performance (SMOTE; averaged over $\lambda$, epochs, batch size)}
+    \label{tab:softmax_pca_effect}
+    \begin{tabular}{cccc}
+        \toprule
+        \textbf{PCA Components} & \textbf{Avg.\ Accuracy} & \textbf{Avg.\ Macro-F1} & \textbf{Avg.\ Weighted-F1} \\
+        \midrule
+        5  & 0.6688 & 0.4279 & 0.7327 \\
+        10 & 0.6506 & 0.4277 & 0.7248 \\
+        21 & 0.6488 & 0.4296 & 0.7236 \\
+        \bottomrule
+    \end{tabular}
+\end{table}
+
+\begin{table}[H]
+    \centering
+    \caption{Effect of L2 Regularization on Validation Performance (SMOTE; averaged over PCA, epochs, batch size)}
+    \label{tab:softmax_l2_effect}
+    \begin{tabular}{cccc}
+        \toprule
+        $\lambda$ & \textbf{Avg.\ Accuracy} & \textbf{Avg.\ Macro-F1} & \textbf{Avg.\ Weighted-F1} \\
+        \midrule
+        0.000 & 0.6492 & 0.4265 & 0.7229 \\
+        0.001 & 0.6503 & 0.4269 & 0.7234 \\
+        0.010 & 0.6524 & 0.4276 & 0.7245 \\
+        0.100 & 0.6724 & 0.4326 & 0.7374 \\
+        \bottomrule
+    \end{tabular}
+\end{table}
+
+\subsubsection*{Rationale for Final Configuration}
+
+The final configuration is: $d_{\text{PCA}} = 15$, $\lambda = 0.15$, epochs $= 5$, batch size $= 32$.
+
+\begin{itemize}
+    \item \textbf{PCA = 15:} The initial grid covered $d_{\text{PCA}} \in \{5, 10, 21\}$. Table~\ref{tab:softmax_pca_effect} reveals a trade-off: PCA~=~5 yields the highest average accuracy (0.669) while PCA~=~21 yields the highest average Macro-F1 (0.430). Fewer components discard noisy trailing variance and improve accuracy on the dominant class; retaining more components preserves discriminative structure for the minority class. Based on this trade-off, $d_{\text{PCA}} = 15$ was tested as an intermediate value. It retains the principal structure of the data while suppressing the noisiest components, and was confirmed to achieve Macro-F1 = \textbf{0.4338} on the validation set, outperforming all grid values including PCA~=~21.
+
+    \item \textbf{$\lambda = 0.15$:} Table~\ref{tab:softmax_l2_effect} shows a clear monotonic improvement in Macro-F1 as $\lambda$ increases from 0 to 0.1. This indicates that the model overfits on the SMOTE-enlarged training set: synthetic samples introduce distributional mismatch between training and validation that stronger regularization suppresses. Extrapolating this trend, $\lambda = 0.15$ was tested and confirmed to further improve validation Macro-F1 beyond the $\lambda = 0.1$ result.
+
+    \item \textbf{Epochs = 5, batch size = 32:} Five epochs are sufficient for convergence of this single-layer linear model on the enlarged dataset without over-training. A batch size of 32 yields noisier but better-generalizing gradient updates compared to 64.
+\end{itemize}
+
+\noindent The selected configuration achieves on the \textbf{validation set}:
+\begin{center}
+    Accuracy: \textbf{0.6721}\quad Micro-F1: \textbf{0.6721}\quad Macro-F1: \textbf{0.4338}\quad Weighted-F1: \textbf{0.7388}
+\end{center}
+
+\subsection{Confusion Matrix Analysis -- Balanced Model}
+
+\begin{figure}[H]
+    \centering
+    \begin{subfigure}[b]{0.48\textwidth}
+        \includegraphics[width=\textwidth]{1773789794849_image.png}
+        \caption{Validation Set}
+        \label{fig:softmax_val_cm}
+    \end{subfigure}
+    \hfill
+    \begin{subfigure}[b]{0.48\textwidth}
+        \includegraphics[width=\textwidth]{1773789166896_image.png}
+        \caption{Test Set}
+        \label{fig:softmax_test_cm}
+    \end{subfigure}
+    \caption{Softmax Regression -- Balanced Model Confusion Matrices (PCA=15, $\lambda$=0.15, SMOTE, epochs=5, batch=32)}
+    \label{fig:softmax_cms}
+\end{figure}
+
+The validation and test confusion matrices are proportionally near-identical (the test set is approximately twice the size), indicating stable generalization.
+
+\paragraph{Class 0 -- No Diabetes.}
+Recall $\approx$ \textbf{69\%} (14,774/21,370 on validation; 29,524/42,742 on test). The model now misclassifies a meaningful fraction of healthy patients into Classes~1 and 2 (3,193 and 3,403 respectively on validation). This is a direct consequence of SMOTE shifting the decision boundary: the model trades some majority-class precision for improved minority-class recall. Clinically, a false positive (healthy patient flagged as at risk) is far less harmful than a false negative.
+
+\paragraph{Class 1 -- Prediabetes.}
+Recall $\approx$ \textbf{26\%} (122/463 on validation). The most common confusion is with Class~2 (201 cases predicted as Diabetic) and Class~0 (140 cases predicted as Healthy). Prediabetes is a transitional physiological state whose feature profile overlaps substantially with both adjacent classes. In the PCA-reduced linear feature space, the Prediabetes cluster lies between the No Diabetes and Diabetes clusters, making it geometrically difficult to isolate with a hyperplane boundary.
+
+\paragraph{Class 2 -- Diabetes.}
+Recall $\approx$ \textbf{57\%} (2,023/3,535 on validation). Most errors fall toward Class~0 (713 cases) and Class~1 (799 cases). Patients with borderline risk profiles -- moderate BMI, mildly elevated blood pressure -- sit near the Class~1/2 decision boundary and are the most prone to misclassification.
+
+\subsection{Overfitting and Generalization Analysis}
+
+Table~\ref{tab:softmax_val_vs_test} directly compares the validation and test metrics of the best model.
+
+\begin{table}[H]
+    \centering
+    \caption{Softmax Regression -- Validation vs.\ Test Performance (Balanced Model)}
+    \label{tab:softmax_val_vs_test}
+    \begin{tabular}{lcc}
+        \toprule
+        \textbf{Metric} & \textbf{Validation Set} & \textbf{Test Set} \\
+        \midrule
+        Accuracy    & 0.6721 & 0.6633 \\
+        Micro-F1    & 0.6721 & 0.6633 \\
+        Macro-F1    & 0.4338 & 0.4263 \\
+        Weighted-F1 & 0.7388 & 0.7316 \\
+        \bottomrule
+    \end{tabular}
+\end{table}
+
+The degradation from validation to test is marginal and uniform across all metrics: Accuracy $\Delta = -0.009$, Macro-F1 $\Delta = -0.008$, Weighted-F1 $\Delta = -0.007$. These small and consistent drops indicate \textbf{no significant overfitting}. The regularization strength $\lambda = 0.15$ effectively prevents the model from memorizing the synthetic SMOTE samples in the training distribution, and the PCA projection to 15 components provides additional implicit regularization by constraining the hypothesis space.
+
+\subsection{Final Test Set Results}
+\label{sec:softmax_final}
+
+\begin{table}[H]
+    \centering
+    \caption{Softmax Regression -- Final Test Set Performance (PCA=15, $\lambda$=0.15, SMOTE, epochs=5, batch=32)}
+    \label{tab:softmax_final_test}
+    \begin{tabular}{lc}
+        \toprule
+        \textbf{Metric} & \textbf{Value} \\
+        \midrule
+        Accuracy    & 0.6633 \\
+        Micro-F1    & 0.6633 \\
+        Macro-F1    & \textbf{0.4263} \\
+        Weighted-F1 & 0.7316 \\
+        \bottomrule
+    \end{tabular}
+\end{table}
+
+\subsection{Summary and Limitations}
+
+The balanced Softmax Regression achieves a \textbf{Macro-F1 of 0.4263} on the test set, a gain of \textbf{+0.097} over the baseline (0.3297) which fails entirely to detect Prediabetes. Despite this improvement, the model's \textbf{linear inductive bias} limits its ceiling: Softmax Regression can only draw hyperplane boundaries, and diabetes risk is driven by compounding non-linear interactions between features (e.g., elevated BMI together with physical inactivity and high blood pressure). The Prediabetes class, whose true decision boundary is likely non-convex in feature space, remains the most difficult to classify. These limitations motivate the use of non-linear classifiers in the following sections.
+
+% ═════════════════════════════════════════════════════════════════════════════
+\section{Model 2: K-Nearest Neighbors (KNN)}
+
+\subsection{Method Overview}
+
+K-Nearest Neighbors is a non-parametric, instance-based classifier. For a query point $\mathbf{x}$, the predicted class is determined by majority vote among the $k$ closest training points under a chosen distance metric:
+
+\begin{equation}
+    \hat{y} = \arg\max_{c}\ \sum_{i \in \mathcal{N}_k(\mathbf{x})} \mathbf{1}[y_i = c]
+\end{equation}
+
+where $\mathcal{N}_k(\mathbf{x})$ is the set of $k$ nearest neighbors of $\mathbf{x}$ in the training set. KNN is sensitive to feature scale -- which is addressed by the standardization step -- and to the choice of $k$ and distance metric, both of which are tuned on the validation set.
+
+\subsection{Baseline Model (No Imbalance Handling)}
+
+\subsubsection{Hyperparameter Tuning}
+
+Two hyperparameters are jointly tuned on the validation set:
+\begin{itemize}
+    \item Number of neighbors: $k \in \{3, 5, 11, 21\}$
+    \item Distance metric: Euclidean ($L_2$) vs.\ Manhattan ($L_1$)
+\end{itemize}
+
+\begin{table}[H]
+    \centering
+    \caption{KNN -- Baseline: Validation Macro-F1 by $k$ and Distance Metric}
+    \label{tab:knn_baseline_tuning}
+    \begin{tabular}{ccccc}
+        \toprule
+        \multirow{2}{*}{$k$} & \multicolumn{2}{c}{Euclidean ($L_2$)} & \multicolumn{2}{c}{Manhattan ($L_1$)} \\
+        \cmidrule(lr){2-3}\cmidrule(lr){4-5}
+         & Macro-F1 & Weighted-F1 & Macro-F1 & Weighted-F1 \\
+        \midrule
+        3  & -- & -- & -- & -- \\
+        5  & -- & -- & -- & -- \\
+        11 & -- & -- & -- & -- \\
+        21 & -- & -- & -- & -- \\
+        \bottomrule
+    \end{tabular}
+\end{table}
+
+\noindent\textbf{Best configuration (Baseline):} $k^* =$ \texttt{--}, metric = \texttt{--} $\Rightarrow$ Macro-F1 = \texttt{--} on validation.
+
+\subsubsection{Test Set Results}
+
+\begin{table}[H]
+    \centering
+    \caption{KNN -- Baseline: Test Set Performance}
+    \label{tab:knn_baseline_test}
+    \begin{tabular}{lc}
+        \toprule
+        \textbf{Metric} & \textbf{Value} \\
+        \midrule
+        Accuracy    & -- \\
+        Micro-F1    & -- \\
+        Macro-F1    & -- \\
+        Weighted-F1 & -- \\
+        \bottomrule
+    \end{tabular}
+\end{table}
+
+\begin{figure}[H]
+    \centering
+    \fbox{\parbox{0.55\textwidth}{\centering\vspace{2cm}[Confusion Matrix -- KNN Baseline]\vspace{2cm}}}
+    \caption{KNN -- Baseline: Test Set Confusion Matrix}
+    \label{fig:knn_baseline_cm}
+\end{figure}
+
+\subsection{Balanced Model (SMOTE)}
+
+\subsubsection{Hyperparameter Tuning}
+
+The same grid is repeated on the SMOTE-balanced training data.
+
+\begin{table}[H]
+    \centering
+    \caption{KNN -- Balanced (SMOTE): Validation Macro-F1 by $k$ and Distance Metric}
+    \label{tab:knn_balanced_tuning}
+    \begin{tabular}{ccccc}
+        \toprule
+        \multirow{2}{*}{$k$} & \multicolumn{2}{c}{Euclidean ($L_2$)} & \multicolumn{2}{c}{Manhattan ($L_1$)} \\
+        \cmidrule(lr){2-3}\cmidrule(lr){4-5}
+         & Macro-F1 & Weighted-F1 & Macro-F1 & Weighted-F1 \\
+        \midrule
+        3  & -- & -- & -- & -- \\
+        5  & -- & -- & -- & -- \\
+        11 & -- & -- & -- & -- \\
+        21 & -- & -- & -- & -- \\
+        \bottomrule
+    \end{tabular}
+\end{table}
+
+\noindent\textbf{Best configuration (Balanced):} $k^* =$ \texttt{--}, metric = \texttt{--} $\Rightarrow$ Macro-F1 = \texttt{--} on validation.
+
+\subsubsection{Test Set Results}
+
+\begin{table}[H]
+    \centering
+    \caption{KNN -- Balanced (SMOTE): Test Set Performance}
+    \label{tab:knn_balanced_test}
+    \begin{tabular}{lc}
+        \toprule
+        \textbf{Metric} & \textbf{Value} \\
+        \midrule
+        Accuracy    & -- \\
+        Micro-F1    & -- \\
+        Macro-F1    & -- \\
+        Weighted-F1 & -- \\
+        \bottomrule
+    \end{tabular}
+\end{table}
+
+\begin{figure}[H]
+    \centering
+    \fbox{\parbox{0.55\textwidth}{\centering\vspace{2cm}[Confusion Matrix -- KNN Balanced]\vspace{2cm}}}
+    \caption{KNN -- Balanced (SMOTE): Test Set Confusion Matrix}
+    \label{fig:knn_balanced_cm}
+\end{figure}
+
+\subsection{Analysis}
+
+\textit{This section will be completed once KNN results are available.}
+
+% ═════════════════════════════════════════════════════════════════════════════
+\section{Model 3: Custom Feedforward Neural Network (FNN)}
+
+\subsection{Architecture}
+
+A custom feedforward neural network is designed from scratch using TensorFlow/Keras. The architecture is summarized in Table~\ref{tab:fnn_arch}.
+
+\begin{table}[H]
+    \centering
+    \caption{Custom FNN Architecture}
+    \label{tab:fnn_arch}
+    \begin{tabular}{clccc}
+        \toprule
+        \textbf{Layer} & \textbf{Type} & \textbf{Units} & \textbf{Activation} & \textbf{Dropout} \\
+        \midrule
+        Input  & Input  & $d_{\text{PCA}}$ & --      & -- \\
+        1      & Dense  & 256              & ReLU    & 0.3 \\
+        2      & Dense  & 128              & ReLU    & 0.3 \\
+        3      & Dense  & 64               & ReLU    & 0.2 \\
+        Output & Dense  & 3                & Softmax & -- \\
+        \bottomrule
+    \end{tabular}
+\end{table}
+
+\noindent\textbf{Loss:} Sparse categorical cross-entropy.\quad\textbf{Optimizer:} Adam.\quad\textbf{Batch size:} 256.
+
+\noindent The output layer uses 3 neurons with Softmax activation, as required for multi-class classification.
+
+\subsection{Baseline Model (No Imbalance Handling)}
+
+\subsubsection{Hyperparameter Tuning}
+
+The following hyperparameters are tuned on the validation set:
+\begin{itemize}
+    \item Learning rate: $\eta \in \{10^{-2}, 10^{-3}, 10^{-4}\}$
+    \item Number of epochs: up to 200, with early stopping (patience = 10) on validation Macro-F1
+    \item Architecture: hidden layers $\in \{2, 3\}$, units per layer $\in \{64, 128, 256\}$
+\end{itemize}
+
+\begin{table}[H]
+    \centering
+    \caption{FNN -- Baseline: Validation Performance for Key Configurations}
+    \label{tab:fnn_baseline_tuning}
+    \begin{tabular}{ccccc}
+        \toprule
+        LR & Layers & Units/Layer & Macro-F1 & Epochs run \\
+        \midrule
+        $10^{-2}$ & 2 & 128 & -- & -- \\
+        $10^{-3}$ & 3 & 256 & -- & -- \\
+        $10^{-3}$ & 2 & 64  & -- & -- \\
+        $10^{-4}$ & 3 & 256 & -- & -- \\
+        \bottomrule
+    \end{tabular}
+\end{table}
+
+\noindent\textbf{Best configuration (Baseline):} LR = \texttt{--}, Layers = \texttt{--}, Units = \texttt{--} $\Rightarrow$ Macro-F1 = \texttt{--}.
+
+\subsubsection{Test Set Results}
+
+\begin{table}[H]
+    \centering
+    \caption{FNN -- Baseline: Test Set Performance}
+    \label{tab:fnn_baseline_test}
+    \begin{tabular}{lc}
+        \toprule
+        \textbf{Metric} & \textbf{Value} \\
+        \midrule
+        Accuracy    & -- \\
+        Micro-F1    & -- \\
+        Macro-F1    & -- \\
+        Weighted-F1 & -- \\
+        \bottomrule
+    \end{tabular}
+\end{table}
+
+\begin{figure}[H]
+    \centering
+    \fbox{\parbox{0.55\textwidth}{\centering\vspace{2cm}[Confusion Matrix -- FNN Baseline]\vspace{2cm}}}
+    \caption{FNN -- Baseline: Test Set Confusion Matrix}
+    \label{fig:fnn_baseline_cm}
+\end{figure}
+
+\subsection{Balanced Model (SMOTE)}
+
+\subsubsection{Hyperparameter Tuning}
+
+The same architecture search is repeated on the SMOTE-balanced training data.
+
+\begin{table}[H]
+    \centering
+    \caption{FNN -- Balanced (SMOTE): Validation Performance for Key Configurations}
+    \label{tab:fnn_balanced_tuning}
+    \begin{tabular}{ccccc}
+        \toprule
+        LR & Layers & Units/Layer & Macro-F1 & Epochs run \\
+        \midrule
+        $10^{-2}$ & 2 & 128 & -- & -- \\
+        $10^{-3}$ & 3 & 256 & -- & -- \\
+        $10^{-3}$ & 2 & 64  & -- & -- \\
+        $10^{-4}$ & 3 & 256 & -- & -- \\
+        \bottomrule
+    \end{tabular}
+\end{table}
+
+\noindent\textbf{Best configuration (Balanced):} LR = \texttt{--}, Layers = \texttt{--}, Units = \texttt{--} $\Rightarrow$ Macro-F1 = \texttt{--}.
+
+\subsubsection{Test Set Results}
+
+\begin{table}[H]
+    \centering
+    \caption{FNN -- Balanced (SMOTE): Test Set Performance}
+    \label{tab:fnn_balanced_test}
+    \begin{tabular}{lc}
+        \toprule
+        \textbf{Metric} & \textbf{Value} \\
+        \midrule
+        Accuracy    & -- \\
+        Micro-F1    & -- \\
+        Macro-F1    & -- \\
+        Weighted-F1 & -- \\
+        \bottomrule
+    \end{tabular}
+\end{table}
+
+\begin{figure}[H]
+    \centering
+    \fbox{\parbox{0.55\textwidth}{\centering\vspace{2cm}[Confusion Matrix -- FNN Balanced]\vspace{2cm}}}
+    \caption{FNN -- Balanced (SMOTE): Test Set Confusion Matrix}
+    \label{fig:fnn_balanced_cm}
+\end{figure}
+
+\subsection{Training Curves (Bonus: TensorBoard)}
+
+\begin{figure}[H]
+    \centering
+    \begin{subfigure}[b]{0.48\textwidth}
+        \fbox{\parbox{\textwidth}{\centering\vspace{2.5cm}[Training \& Validation Loss]\vspace{2.5cm}}}
+        \caption{Loss Curves}
+        \label{fig:fnn_loss}
+    \end{subfigure}
+    \hfill
+    \begin{subfigure}[b]{0.48\textwidth}
+        \fbox{\parbox{\textwidth}{\centering\vspace{2.5cm}[Training \& Validation Macro-F1]\vspace{2.5cm}}}
+        \caption{Macro-F1 Curves}
+        \label{fig:fnn_f1}
+    \end{subfigure}
+    \caption{FNN -- Training Curves Monitored via TensorBoard}
+    \label{fig:fnn_training}
+\end{figure}
+
+\subsection{Analysis}
+
+\textit{This section will be completed once FNN results are available.}
+
+% ═════════════════════════════════════════════════════════════════════════════
+\section{Overall Evaluation and Comparison}
+
+\subsection{Metric Justification}
+
+Four metrics are reported for all models. Table~\ref{tab:metric_justification} summarizes their properties and suitability for this task.
+
+\begin{table}[H]
+    \centering
+    \caption{Evaluation Metrics -- Properties and Suitability}
+    \label{tab:metric_justification}
+    \begin{tabular}{lp{5.5cm}l}
+        \toprule
+        \textbf{Metric} & \textbf{Definition} & \textbf{Suitable here?} \\
+        \midrule
+        Accuracy    & Fraction of correct predictions & \textbf{No} -- inflated by majority class \\
+        Micro-F1    & F1 computed globally across all samples; equals accuracy in multi-class & \textbf{No} -- dominated by Class~0 \\
+        Weighted-F1 & Mean F1 weighted by class support & Partial -- still discounts minority \\
+        Macro-F1    & Unweighted mean F1 across all classes & \textbf{Yes} -- treats all classes equally \\
+        \bottomrule
+    \end{tabular}
+\end{table}
+
+A model that always predicts Class~0 achieves $\sim$84\% accuracy and Micro-F1 while being clinically useless. Macro-F1 assigns equal weight to the Prediabetes class regardless of its small size, making it the most appropriate metric for model selection on this imbalanced dataset. All comparison and model selection decisions in this report are based on \textbf{Macro-F1}.
+
+\subsection{Summary Table -- All Models}
+
+\begin{table}[H]
+    \centering
+    \caption{Test Set Performance -- All Models}
+    \label{tab:summary}
+    \begin{tabular}{llcccc}
+        \toprule
+        \textbf{Model} & \textbf{Setting} & \textbf{Accuracy} & \textbf{Micro-F1} & \textbf{Macro-F1} & \textbf{Weighted-F1} \\
+        \midrule
+        \multirow{2}{*}{Softmax Regression}
+            & Baseline         & 0.8448 & 0.8448 & 0.3297          & 0.7815 \\
+            & Balanced (SMOTE) & 0.6633 & 0.6633 & \textbf{0.4263} & 0.7316 \\
+        \midrule
+        \multirow{2}{*}{KNN}
+            & Baseline         & --     & --     & --              & --     \\
+            & Balanced (SMOTE) & --     & --     & --              & --     \\
+        \midrule
+        \multirow{2}{*}{FNN}
+            & Baseline         & --     & --     & --              & --     \\
+            & Balanced (SMOTE) & --     & --     & --              & --     \\
+        \bottomrule
+    \end{tabular}
+\end{table}
+
+% ═════════════════════════════════════════════════════════════════════════════
+\section{Analysis and Discussion}
+
+\subsection{Which Model Performed Best and Why?}
+
+\textit{This section will be completed once KNN and FNN results are available and added to Table~\ref{tab:summary}.}
+
+\subsection{Impact of Imbalance Handling}
+
+For the Softmax Regression model, the impact of SMOTE is clear and substantial: Macro-F1 increases from 0.3297 (baseline) to 0.4263 (balanced), a gain of \textbf{+0.097}. The baseline's Class~1 recall was 0\% -- the minority class was entirely undetected. After SMOTE, Class~1 recall reaches $\sim$26\% while Class~2 recall improves from 3.9\% to $\sim$57\%. The trade-off is a reduction in accuracy and Class~0 recall, as the shifted decision boundary generates more false positives on the majority class. This trade-off is clinically acceptable: false positives lead to further screening, whereas false negatives leave at-risk patients undetected.
+
+\textit{The impact for KNN and FNN will be discussed once those results are available.}
+
+\subsection{Confusion Matrix Insights}
+
+Based on the Softmax Regression confusion matrices (Figures~\ref{fig:softmax_baseline_cms} and~\ref{fig:softmax_cms}), the following misclassification patterns are consistent across both the baseline and balanced models:
+
+\begin{itemize}
+    \item \textbf{Prediabetes (Class~1) confused with No Diabetes (Class~0):} The most persistent error. Clinically, prediabetes is characterized by mildly abnormal glucose metabolism that shares feature distributions with the healthy population (similar BMI, blood pressure, and activity levels). Mathematically, the Prediabetes cluster occupies an intermediate position between the No Diabetes and Diabetes clusters in the PCA-reduced feature space, making linear separation infeasible.
+
+    \item \textbf{Diabetes (Class~2) confused with No Diabetes (Class~0):} Patients with only one or two elevated risk factors (e.g., high BMI but otherwise healthy profile) are misclassified. The risk profile for these cases does not cross the Class~2 decision boundary.
+
+    \item \textbf{No Diabetes (Class~0) confused with Classes~1 and 2 (after SMOTE):} SMOTE expands the minority class regions, shifting the decision boundary to flag more patients as at risk. This increases false positives on Class~0, but reduces the clinically more serious false negatives on Classes~1 and 2.
+\end{itemize}
+
+\textit{Cross-model confusion matrix comparisons will be added once all results are complete.}
+
+% ═════════════════════════════════════════════════════════════════════════════
+\section{Conclusion}
+
+\textit{The conclusion will be written in full once all three models are complete. The following are the confirmed findings from the Softmax Regression model:}
+
+\begin{enumerate}[leftmargin=2cm]
+    \item \textbf{Class imbalance handling is essential.} The baseline Softmax Regression achieves 84.5\% accuracy but completely fails to detect Prediabetes (0\% recall) and misses over 95\% of Diabetes cases. SMOTE raises Macro-F1 from 0.3297 to 0.4263.
+    \item \textbf{Macro-F1 is the appropriate primary metric} for this imbalanced clinical task, as it weights all classes equally and is not inflated by majority-class dominance.
+    \item \textbf{Linear models are limited} on this task due to non-linear feature interactions; non-linear classifiers (KNN, FNN) are expected to improve performance.
+    \item \textbf{Prediabetes is the hardest class to predict} in all models, due to its biological ambiguity and overlap with both adjacent classes in feature space.
+\end{enumerate}
+
+% ═════════════════════════════════════════════════════════════════════════════
+\appendix
+\section{Reproducibility Checklist}
+
+\begin{itemize}
+    \item Random seed fixed to \texttt{42} for all operations (train/val/test split, SMOTE, model initialization).
+    \item All datasets are split with \texttt{stratify=y} to preserve class distribution.
+    \item StandardScaler and PCA are fit on the training set only; the same fitted transformers are applied to validation and test sets.
+    \item SMOTE is applied only to the training set, never to validation or test.
+    \item Hyperparameters are selected on the validation set; the test set is used only for final evaluation.
+    \item Full implementation is available in the submitted Jupyter Notebook.
+\end{itemize}
+
+% ═════════════════════════════════════════════════════════════════════════════
+\end{document}

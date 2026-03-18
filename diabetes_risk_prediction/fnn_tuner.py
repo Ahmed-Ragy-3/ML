@@ -11,7 +11,7 @@ from dataset import Dataset
 DATASET_PATH = "C:\\COLLEGE\\Term_8\\pattern\\ML\\diabetes_risk_prediction\\data\\diabetes_012_health_indicators_BRFSS2015.csv"
 RESULTS_FILE = "fnn_results.csv"
 BEST_CONFIG_FILE = "fnn_best_config.csv"
-BEST_MODEL_DIR = "best_fnn_model"
+BEST_MODEL_DIR = "best_fnn_model.keras"
 TENSORBOARD_LOG_DIR = "tensorboard_logs"
 
 SEARCH_SPACE = {
@@ -136,8 +136,7 @@ def load(path):
       row["f1_micro"] = float(row["f1_micro"])
       row["f1_macro"] = float(row["f1_macro"])
       row["f1_weighted"] = float(row["f1_weighted"])
-      row["hidden_layers"] = [
-          int(x) for x in row["hidden_layers"].strip("[]").split(", ")]
+      row["hidden_layers"] = [int(x) for x in row["hidden_layers"].strip("[]").split(", ")]
       row["activations"] = [
           x.strip("' ") for x in row["activations"].strip("[]").split(", ")]
       row["imbalance"] = None if row["imbalance"] == "None" else row["imbalance"]
@@ -172,12 +171,12 @@ def main():
    save(results, RESULTS_FILE)
    # save(best, BEST_CONFIG_FILE)
 
-   # model, ds = train_best(best)
-   # model.model.save(BEST_MODEL_DIR)
+   model, ds = train_best(best)
+   model.model.save(BEST_MODEL_DIR)
 
-   # plot_confusion(ds.y_val, model.predict(ds.x_val),
-   #                title="Confusion Matrix (Validation Set)")
-   # return results, best, model
+   plot_confusion(ds.y_val, model.predict(ds.x_val),
+                  title="Confusion Matrix (Validation Set)")
+   return results, best, model
 
 
 if __name__ == "__main__":

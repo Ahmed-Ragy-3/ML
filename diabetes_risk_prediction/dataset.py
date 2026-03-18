@@ -107,17 +107,6 @@ class Dataset:
       self.x_val = pca.transform(self.x_val)
       self.x_test = pca.transform(self.x_test)
 
-   # def _feature_selection(self, k=10):
-   #      from sklearn.feature_selection import SelectKBest, mutual_info_classif
-
-   #      self._selector = SelectKBest(
-   #          score_func=mutual_info_classif,
-   #          k=k
-   #      )
-   #      self.x_train = self._selector.fit_transform(self.x_train, self.y_train)
-   #      self.x_val   = self._selector.transform(self.x_val)
-   #      self.x_test  = self._selector.transform(self.x_test)
-
    def _oversample(self):
       from imblearn.over_sampling import SMOTE
       smote = SMOTE(random_state=self.RANDOM_SEED)
@@ -128,11 +117,6 @@ class Dataset:
       undersampler = RandomUnderSampler(random_state=self.RANDOM_SEED)
       self.x_train, self.y_train = undersampler.fit_resample(self.x_train, self.y_train)
 
-   # def _class_weighting(self):
-   #    from sklearn.utils import class_weight
-   #    class_weights = class_weight.compute_class_weight('balanced', np.unique(self.y_train), self.y_train)
-   #    return class_weights
-   
    def handle_imbalance(self, method='oversample'):
       match method:
          case 'oversample':
@@ -141,5 +125,3 @@ class Dataset:
             self._undersample()
          case _:
             raise ValueError("Invalid method. Choose from 'oversample', 'undersample', or 'class_weighting'.")
-         # case 'class_weighting':
-         #    self._class_weighting()

@@ -1,23 +1,7 @@
-from typing import Tuple, Union, List, Optional
+from typing import Tuple, Union, List, Optional, cast
 import pandas as pd
 import numpy as np
-
-
-class Node:
-    def __init__(
-        self,
-        feature: Optional[str] = None,
-        threshold: Optional[float] = None,
-        left: Optional["Node"] = None,
-        right: Optional["Node"] = None,
-        value: Optional[int] = None
-    ):
-        self.feature = feature
-        self.threshold = threshold
-        self.left = left
-        self.right = right
-        self.value = value
-
+from Heart_Failure.Decision_Tree.model.node import Node, InternalNode, LeafNode
 
 class DecisionTree:
     def __init__(self, max_depth: int = 5, min_samples_split: int = 2):
@@ -26,6 +10,7 @@ class DecisionTree:
         self.min_samples_split = min_samples_split
 
     def fit(self, X: pd.DataFrame, y: pd.Series) -> None:
+        y = y.astype(int)
         self.root = self._build_tree(X, y, depth=0)
 
     def _build_tree(self, X: pd.DataFrame, y: pd.Series, depth: int) -> Node:
@@ -34,7 +19,7 @@ class DecisionTree:
             or len(y) < self.min_samples_split
             or depth >= self.max_depth
         ):
-            return Node(value=self._most_common_label(y))
+            return LeafNode(value=self._most_common_label(y))
 
         best_feature = None
         best_threshold = None
@@ -56,31 +41,23 @@ class DecisionTree:
                     best_feature = feature
                     best_threshold = threshold
 
-        # if no split found → leaf
+        # no valid split → leaf
         if best_feature is None:
-            return Node(value=self._most_common_label(y))
+            return LeafNode(value=self._most_common_label(y))
 
-        # split again
+        # split
         X_l, X_r, y_l, y_r = self.split_dataset(X, y, best_feature, best_threshold)
 
         # recursion
         left_child = self._build_tree(X_l, y_l, depth + 1)
         right_child = self._build_tree(X_r, y_r, depth + 1)
 
-        return Node(
+        return InternalNode(
             feature=best_feature,
             threshold=best_threshold,
             left=left_child,
             right=right_child
         )
-
-    def get_thresholds(self, feature_values: pd.Series) -> List[float]:
-        unique_values = np.sort(feature_values.unique())
-
-        return [
-            (unique_values[i] + unique_values[i + 1]) / 2
-            for i in range(len(unique_values) - 1)
-        ]
 
     def split_dataset(
         self,
@@ -95,17 +72,21 @@ class DecisionTree:
 
         return X[left_mask], X[right_mask], y[left_mask], y[right_mask]
 
+    def get_thresholds(self, feature_values: pd.Series) -> List[float]:
+        unique_values = np.sort(feature_values.unique())
+
+        return [
+            (unique_values[i] + unique_values[i + 1]) / 2
+            for i in range(len(unique_values) - 1)
+        ]
+
+
     def entropy(self, y: np.ndarray) -> float:
         probs = np.bincount(y) / len(y)
         probs = probs[probs > 0]
         return -np.sum(probs * np.log2(probs))
 
-    def information_gain(
-        self,
-        parent_y: np.ndarray,
-        left_y: np.ndarray,
-        right_y: np.ndarray
-    ) -> float:
+    def information_gain(self, parent_y: np.ndarray, left_y: np.ndarray, right_y: np.ndarray) -> float:
 
         total = len(parent_y)
         w_left = len(left_y) / total
@@ -120,8 +101,10 @@ class DecisionTree:
         return np.array([self._traverse(row, self.root) for _, row in X.iterrows()])
 
     def _traverse(self, row: pd.Series, node: Node) -> int:
-        if node.value is not None:
+        if isinstance(node, LeafNode):
             return node.value
+
+        node = cast(InternalNode, node)
 
         if row[node.feature] <= node.threshold:
             return self._traverse(row, node.left)

@@ -69,19 +69,3 @@ class Dataset:
       )
 
       return train_data, val_data, test_data
-
-if __name__ == "__main__":
-   DATA_PATH = os.path.join(os.path.dirname(__file__), "data", "heart.csv")
-
-   dataset = Dataset(DATA_PATH)
-   dataset.prepare()
-
-   # print(dataset.x_train.head(10))
-
-   # model = DecisionTreeModel()
-   # model.train(dataset.x_train, dataset.y_train)
-
-   # Evaluate
-   # model.evaluate(dataset.x_train, dataset.y_train, "Train")
-   # model.evaluate(dataset.x_val, dataset.y_val, "Validation")
-   # model.evaluate(dataset.x_test, dataset.y_test, "Test")

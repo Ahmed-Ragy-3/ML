@@ -1,5 +1,5 @@
 from pandas import DataFrame, Series
-from learner import Learner
+from Heart_Failure.Boosting.learner import Learner
 import numpy as np
 
 class AdaBoost:
@@ -51,6 +51,7 @@ class AdaBoost:
 
 		return np.where(final_prediction >= 0, 1, -1)
 	
+	# Misclassification error weighted by sample weights
 	def _err(self, y_true: Series, y_pred: Series) -> float:
 		return np.sum(self.weights * (y_true != y_pred)) / np.sum(self.weights)
 	
@@ -61,4 +62,4 @@ class AdaBoost:
 	def _update_weights(self, alpha: float, y_true: Series, y_pred: Series) -> Series:
 		self.weights *= np.exp(-alpha * (y_true * y_pred))
 		# Normalized
-		self.weights /= np.sum(self.weights) 
+		self.weights /= np.sum(self.weights)

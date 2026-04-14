@@ -95,7 +95,7 @@ def main():
 
     n_estimators_list = [1, 5, 10, 15, 20, 25, 30, 40, 50, 75, 100]
 
-    with open("plots/rf_results.csv", mode="w", newline="") as file:
+    with open("plots/random_forest_results.csv", mode="w", newline="") as file:
         writer = csv.writer(file)
         writer.writerow(["n_estimators", "val_accuracy", "val_f1"])
 
@@ -110,11 +110,11 @@ def main():
 
     plot_results(acc_values, n_estimators_list,
                  "Validation Accuracy vs Number of Trees", "Accuracy",
-                 "validation_accuracy.png")
+                 "random_forest_validation_accuracy.png")
 
     plot_results(f1_values, n_estimators_list,
                  "Validation F1 Score vs Number of Trees", "F1 Score",
-                 "validation_f1.png")
+                 "random_forest_validation_f1.png")
 
     print("\n===== BEST MODEL =====")
     print(f"n_estimators: {best_params}")
@@ -122,7 +122,7 @@ def main():
     test_acc, test_f1 = test_model(best_model, dataset)
 
     # Append test results to CSV
-    with open("plots/rf_results.csv", mode="a", newline="") as file:
+    with open("plots/random_forest_results.csv", mode="a", newline="") as file:
         writer = csv.writer(file)
         writer.writerow([])
         writer.writerow(["TEST", test_acc, test_f1])

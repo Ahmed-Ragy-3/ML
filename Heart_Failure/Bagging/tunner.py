@@ -112,11 +112,11 @@ def main():
 
     plot_results(acc_values, n_estimators_list,
                  "Validation Accuracy vs Number of Trees", "Accuracy",
-                 "validation_accuracy.png")
+                 "bagging_validation_accuracy.png")
 
     plot_results(f1_values, n_estimators_list,
                  "Validation F1 Score vs Number of Trees", "F1 Score",
-                 "validation_f1.png")
+                 "bagging_validation_f1.png")
 
     print("\n===== BEST MODEL =====")
     print(f"n_estimators: {best_params}")

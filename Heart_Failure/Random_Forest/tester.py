@@ -40,8 +40,8 @@ if __name__ == "__main__":
 
     # VALIDATION
     val_preds = model.predict(dataset.x_val)
-    evaluate("VALIDATION", dataset.y_val, val_preds, "validation_confusion.png")
+    evaluate("VALIDATION", dataset.y_val, val_preds, "random_forest_validation_confusion.png")
 
     # TEST
     test_preds = model.predict(dataset.x_test)
-    evaluate("TEST", dataset.y_test, test_preds, "test_confusion.png")
+    evaluate("TEST", dataset.y_test, test_preds, "random_forest_test_confusion.png")

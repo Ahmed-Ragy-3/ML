@@ -1,0 +1,339 @@
+\documentclass[12pt,a4paper]{article}
+
+\usepackage[margin=2.5cm]{geometry}
+\usepackage{graphicx}
+\usepackage{booktabs}
+\usepackage{amsmath}
+\usepackage{caption}
+\usepackage{subcaption}
+\usepackage{float}
+\usepackage{hyperref}
+\usepackage{parskip}
+\usepackage{titlesec}
+\usepackage{xcolor}
+
+\hypersetup{colorlinks=true, linkcolor=blue, urlcolor=blue}
+
+\title{\textbf{Assignment \#2: Heart Failure Classification}\\
+\large CSE: Pattern Recognition\\
+Alexandria University -- Faculty of Engineering}
+\author{
+  Nour Eldin Akram  	\quad \texttt{22011309} \\
+  Ahmed Ragy Hussein	 \quad \texttt{22011690} \\
+  Mina Nabil Youssef	 \quad \texttt{22011290} \\[6pt]
+  \normalsize Computer and Systems Engineering Department
+}
+\date{April 2026}
+
+\begin{document}
+
+\maketitle
+\tableofcontents
+\newpage
+
+%=============================================================
+\section{Problem Statement}
+%=============================================================
+
+Heart failure is a critical condition caused by cardiovascular diseases. The goal of this
+assignment is to build and compare several classifiers to predict whether a patient is at
+risk of heart failure based on clinical features. The dataset used is the
+\textit{Heart Failure Prediction} dataset (918 samples, 11 features, 2 classes) from Kaggle.
+
+%=============================================================
+\section{Dataset and Preparation}
+%=============================================================
+
+The dataset was prepared following the steps below:
+
+\begin{itemize}
+  \item \textbf{Random seed:} Fixed at 42 for all random operations to ensure reproducibility.
+  \item \textbf{Train/Validation/Test split:} 70\% training, 10\% validation, 20\% test,
+        using stratified splitting to preserve class distribution.
+  \item \textbf{Feature preprocessing:} Numerical features were standardized.
+        Categorical features (e.g.\ \texttt{Sex}, \texttt{ChestPainType}) were one-hot encoded.
+  \item \textbf{Validation set role:} Used exclusively for hyperparameter tuning and model
+        selection; the test set was kept unseen until final evaluation.
+\end{itemize}
+
+%=============================================================
+\section{Implementation Details}
+%=============================================================
+
+Three classifiers were implemented from scratch, plus a bonus Random Forest model.
+
+\subsection{Decision Tree}
+A decision tree was implemented using Information Gain (entropy-based) as the splitting
+criterion. Two hyperparameters were tuned on the validation set via a grid search:
+\texttt{max\_depth} $\in \{2,3,\ldots,30\}$ and
+\texttt{min\_samples\_split} $\in \{2,5,7,10,20,30,40\}$.
+
+\subsection{Bagging Ensemble}
+A Bagging (Bootstrap Aggregating) classifier was built using the custom decision tree as
+the base learner. Multiple trees are trained on bootstrap samples of the training data;
+predictions are aggregated by majority vote.
+The number of estimators \texttt{n\_estimators} $\in \{1,5,10,\ldots,100\}$ was tuned on
+the validation set.
+
+\subsection{AdaBoost Ensemble}
+AdaBoost was implemented from scratch with depth-1 decision stumps as weak learners.
+Sample weights are updated after each round so that subsequent stumps focus on previously
+misclassified examples. The number of boosting iterations was tuned on the validation set
+across $\{1,5,10,20,30,50,75,100,150,200\}$.
+
+\subsection{Random Forest (Bonus)}
+A Random Forest was implemented, extending the Bagging approach by additionally applying
+random feature subsampling at each split. The number of estimators was tuned identically
+to the Bagging setup.
+
+%=============================================================
+\section{Hyperparameter Tuning}
+%=============================================================
+
+\subsection{Decision Tree}
+
+Figure~\ref{fig:dt_tuning} shows validation accuracy and F1-score across the
+(\texttt{max\_depth}, \texttt{min\_samples\_split}) grid. Shallow trees (depth 2--5)
+with larger \texttt{min\_samples\_split} values achieve the highest validation scores.
+The best configuration found was \textbf{max\_depth = 5, min\_samples\_split = 2},
+yielding a validation accuracy of 0.8791 and F1-score of 0.8889.
+
+\begin{figure}[H]
+  \centering
+  \begin{subfigure}[b]{0.48\textwidth}
+    \includegraphics[width=\textwidth]{images/dt_acc_tuning.png}
+    \caption{Validation Accuracy}
+  \end{subfigure}
+  \hfill
+  \begin{subfigure}[b]{0.48\textwidth}
+    \includegraphics[width=\textwidth]{images/dt_f1_tuning.png}
+    \caption{Validation F1-Score}
+  \end{subfigure}
+  \caption{Decision Tree hyperparameter tuning heatmaps.}
+  \label{fig:dt_tuning}
+\end{figure}
+
+\subsection{AdaBoost}
+
+Figure~\ref{fig:ada_tuning} shows that performance rises sharply in the first 50 iterations,
+peaks at \textbf{75 iterations} (validation accuracy 0.9121, F1 0.9216), and then slightly
+decreases due to overfitting at higher iteration counts.
+
+\begin{figure}[H]
+  \centering
+  \begin{subfigure}[b]{0.48\textwidth}
+    \includegraphics[width=\textwidth]{images/ada_acc.png}
+    \caption{Validation Accuracy vs.\ Iterations}
+  \end{subfigure}
+  \hfill
+  \begin{subfigure}[b]{0.48\textwidth}
+    \includegraphics[width=\textwidth]{images/ada_f1.png}
+    \caption{Validation F1-Score vs.\ Iterations}
+  \end{subfigure}
+  \caption{AdaBoost tuning curves.}
+  \label{fig:ada_tuning}
+\end{figure}
+
+\subsection{Bagging}
+
+Figure~\ref{fig:bag_tuning} shows that accuracy and F1-score plateau around
+\texttt{n\_estimators = 20--30}. The best model used \textbf{n\_estimators = 20}
+(validation accuracy 0.8901, F1 0.9000).
+
+\begin{figure}[H]
+  \centering
+  \begin{subfigure}[b]{0.48\textwidth}
+    \includegraphics[width=\textwidth]{images/bag_acc.png}
+    \caption{Validation Accuracy vs.\ Trees}
+  \end{subfigure}
+  \hfill
+  \begin{subfigure}[b]{0.48\textwidth}
+    \includegraphics[width=\textwidth]{images/bag_f1.png}
+    \caption{Validation F1-Score vs.\ Trees}
+  \end{subfigure}
+  \caption{Bagging tuning curves.}
+  \label{fig:bag_tuning}
+\end{figure}
+
+\subsection{Random Forest (Bonus)}
+
+Figure~\ref{fig:rf_tuning} shows a sharp peak at \textbf{n\_estimators = 20}
+(validation accuracy 0.9341, F1 0.9423), which is the highest validation performance
+across all models. Performance degrades slightly as more trees are added.
+
+\begin{figure}[H]
+  \centering
+  \begin{subfigure}[b]{0.48\textwidth}
+    \includegraphics[width=\textwidth]{images/rf_acc.png}
+    \caption{Validation Accuracy vs.\ Trees}
+  \end{subfigure}
+  \hfill
+  \begin{subfigure}[b]{0.48\textwidth}
+    \includegraphics[width=\textwidth]{images/rf_f1.png}
+    \caption{Validation F1-Score vs.\ Trees}
+  \end{subfigure}
+  \caption{Random Forest tuning curves.}
+  \label{fig:rf_tuning}
+\end{figure}
+
+%=============================================================
+\section{Evaluation}
+%=============================================================
+
+\subsection{Performance Summary}
+
+Table~\ref{tab:results} summarises the test-set performance of all models after
+hyperparameter selection on the validation set.
+
+\begin{table}[H]
+  \centering
+  \caption{Test-set performance comparison of all classifiers.}
+  \label{tab:results}
+  \begin{tabular}{lcc}
+    \toprule
+    \textbf{Model} & \textbf{Test Accuracy} & \textbf{Test F1-Score} \\
+    \midrule
+    Decision Tree   & 0.8324 & 0.8442 \\
+    Bagging         & 0.8432 & 0.8585 \\
+    AdaBoost        & 0.8649 & 0.8744 \\
+    Random Forest (Bonus) & \textbf{0.8865} & \textbf{0.8966} \\
+    \bottomrule
+  \end{tabular}
+\end{table}
+
+\subsection{Confusion Matrices}
+
+\subsubsection{Decision Tree}
+
+\begin{figure}[H]
+  \centering
+  \begin{subfigure}[b]{0.45\textwidth}
+    \includegraphics[width=\textwidth]{images/dt_val_cm.png}
+    \caption{Validation set}
+  \end{subfigure}
+  \hfill
+  \begin{subfigure}[b]{0.45\textwidth}
+    \includegraphics[width=\textwidth]{images/dt_test_cm.png}
+    \caption{Test set}
+  \end{subfigure}
+  \caption{Decision Tree confusion matrices (classes: 0 = No Heart Failure, 1 = Heart Failure).}
+  \label{fig:dt_cm}
+\end{figure}
+
+On the test set the Decision Tree correctly classifies 70 true-negatives and
+84 true-positives, while misclassifying 12 negatives as positive and
+19 positives as negative.
+
+\subsubsection{Bagging}
+
+\begin{figure}[H]
+  \centering
+  \begin{subfigure}[b]{0.45\textwidth}
+    \includegraphics[width=\textwidth]{images/bag_val_cm.png}
+    \caption{Validation set}
+  \end{subfigure}
+  \hfill
+  \begin{subfigure}[b]{0.45\textwidth}
+    \includegraphics[width=\textwidth]{images/bag_test_cm.png}
+    \caption{Test set}
+  \end{subfigure}
+  \caption{Bagging confusion matrices.}
+  \label{fig:bag_cm}
+\end{figure}
+
+The Bagging ensemble achieves 68 true-negatives and 88 true-positives on the test set,
+with 14 false-positives and 15 false-negatives.
+
+\subsubsection{AdaBoost}
+
+\begin{figure}[H]
+  \centering
+  \begin{subfigure}[b]{0.45\textwidth}
+    \includegraphics[width=\textwidth]{images/ada_val_cm.png}
+    \caption{Validation set}
+  \end{subfigure}
+  \hfill
+  \begin{subfigure}[b]{0.45\textwidth}
+    \includegraphics[width=\textwidth]{images/ada_test_cm.png}
+    \caption{Test set}
+  \end{subfigure}
+  \caption{AdaBoost confusion matrices (classes: $-1$ = No Heart Failure, $+1$ = Heart Failure).}
+  \label{fig:ada_cm}
+\end{figure}
+
+AdaBoost achieves 73 true-negatives and 87 true-positives on the test set,
+with only 9 false-positives and 16 false-negatives.
+
+\subsubsection{Random Forest (Bonus)}
+
+\begin{figure}[H]
+  \centering
+  \begin{subfigure}[b]{0.45\textwidth}
+    \includegraphics[width=\textwidth]{images/rf_val_cm.png}
+    \caption{Validation set}
+  \end{subfigure}
+  \hfill
+  \begin{subfigure}[b]{0.45\textwidth}
+    \includegraphics[width=\textwidth]{images/rf_test_cm.png}
+    \caption{Test set}
+  \end{subfigure}
+  \caption{Random Forest confusion matrices.}
+  \label{fig:rf_cm}
+\end{figure}
+
+The Random Forest achieves the best test results: 73 true-negatives and
+91 true-positives, with only 9 false-positives and 12 false-negatives.
+
+%=============================================================
+\section{Analysis and Comparison}
+%=============================================================
+
+\subsection{Which Model Performed Best and Why?}
+
+The \textbf{Random Forest} achieved the highest test accuracy (0.8865) and F1-score
+(0.8966), followed by AdaBoost (accuracy 0.8649, F1 0.8744). Both ensemble methods
+significantly outperform the single Decision Tree (accuracy 0.8324).
+
+Random Forest benefits from two sources of variance reduction: bootstrap sampling
+(as in Bagging) \emph{and} random feature subsampling at each split. This decorrelates
+the individual trees more aggressively than Bagging alone, leading to a more powerful
+ensemble.
+
+\subsection{Decision Tree vs.\ Ensemble Methods}
+
+A single Decision Tree is prone to overfitting: it perfectly memorises the training data
+unless pruned, yet generalises less well. The tuned tree (depth 5) achieved only 0.8324
+on the test set. Ensemble methods address this by averaging over many trees trained on
+different data subsets (Bagging, Random Forest) or by iteratively correcting errors
+(AdaBoost), all of which reduce variance or bias.
+
+\begin{itemize}
+  \item \textbf{Bagging} reduces variance by averaging predictions, achieving 0.8432 test accuracy.
+  \item \textbf{AdaBoost} reduces bias by focusing on hard examples; it scores 0.8649,
+        clearly outperforming the single tree.
+  \item \textbf{Random Forest} combines variance reduction with decorrelated trees,
+        achieving the best overall performance.
+\end{itemize}
+
+\subsection{Misclassification Patterns}
+
+Across all models, false-negatives (heart failure patients predicted as healthy) are more
+common than false-positives. In the medical context of heart failure prediction, false-negatives
+are particularly costly because a missed diagnosis can have severe clinical consequences.
+AdaBoost shows the fewest false-positives (9) on the test set, while the Decision Tree has
+the most false-negatives (19).
+
+The Random Forest achieves the best balance: only 9 false-positives and 12 false-negatives,
+making it the most reliable model for this medical classification task.
+
+%=============================================================
+\section{Conclusion}
+%=============================================================
+
+This assignment compared four classifiers -- Decision Tree, Bagging, AdaBoost, and
+Random Forest -- on the Heart Failure Prediction dataset. All three ensemble methods
+outperformed the single decision tree, confirming the well-known advantages of ensemble
+learning. The Random Forest achieved the best test-set performance (accuracy 0.8865,
+F1-score 0.8966), making it the recommended model for this task.
+
+\end{document}

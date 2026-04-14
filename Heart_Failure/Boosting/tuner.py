@@ -103,7 +103,7 @@ def main():
 	# Ensure directory exists
    os.makedirs("plots", exist_ok=True)
 
-   with open("plots/results_adaboost.csv", mode="w", newline="") as file:
+   with open("plots/boosting_results_adaboost.csv", mode="w", newline="") as file:
       writer = csv.writer(file)
       writer.writerow(["iterations", "val_accuracy", "val_f1"])
 
@@ -128,7 +128,7 @@ def main():
    test_acc, test_f1 = test_model(best_model, dataset)
 
    # append test results
-   with open("plots/results_adaboost.csv", mode="a", newline="") as file:
+   with open("plots/boosting_results_adaboost.csv", mode="a", newline="") as file:
       writer = csv.writer(file)
       writer.writerow([])
       writer.writerow(["TEST", test_acc, test_f1])

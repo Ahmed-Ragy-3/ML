@@ -2,7 +2,8 @@ import numpy as np
 import pandas as pd
 from typing import List, Optional
 
-from Heart_Failure.Decision_Tree.model.decision_tree import DecisionTree
+from Decision_Tree.model.decision_tree import DecisionTree
+
 
 class Bagging:
     def __init__(self, n_estimators: int = 10, random_seed: int = 42):

@@ -1,5 +1,5 @@
 from pandas import DataFrame, Series
-from Heart_Failure.Boosting.learner import Learner
+from Boosting.learner import Learner
 import numpy as np
 
 class AdaBoost:

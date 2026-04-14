@@ -1,8 +1,8 @@
 import os
 import matplotlib.pyplot as plt
 
-from Heart_Failure.dataset import Dataset
-from Heart_Failure.Boosting.adaboost import AdaBoost   # adjust import
+from dataset import Dataset
+from Boosting.adaboost import AdaBoost   # adjust import
 from sklearn.metrics import accuracy_score, f1_score, confusion_matrix, ConfusionMatrixDisplay
 
 

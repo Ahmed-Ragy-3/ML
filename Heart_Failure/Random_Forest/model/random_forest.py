@@ -2,7 +2,7 @@ import numpy as np
 import pandas as pd
 from typing import List, Optional
 
-from Heart_Failure.Random_Forest.model.random_forest_tree import RandomForestTree
+from Random_Forest.model.random_forest_tree import RandomForestTree
 
 
 class RandomForest:

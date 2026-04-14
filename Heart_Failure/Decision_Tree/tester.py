@@ -1,8 +1,8 @@
 import os
 import matplotlib.pyplot as plt
 
-from Heart_Failure.dataset import Dataset
-from Heart_Failure.Decision_Tree.model.decision_tree import DecisionTree
+from dataset import Dataset
+from Decision_Tree.model.decision_tree import DecisionTree
 from sklearn.metrics import accuracy_score, f1_score, confusion_matrix, ConfusionMatrixDisplay
 
 

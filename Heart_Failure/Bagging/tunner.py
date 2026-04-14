@@ -3,9 +3,10 @@ import csv
 import numpy as np
 import matplotlib.pyplot as plt
 
-from Heart_Failure.dataset import Dataset
-from Heart_Failure.Bagging.model.bagging import Bagging
+from dataset import Dataset
+from Bagging.model.bagging import Bagging
 from sklearn.metrics import accuracy_score, f1_score, confusion_matrix
+
 
 def load_data():
     base_dir = os.path.dirname(os.path.abspath(__file__))
@@ -15,16 +16,19 @@ def load_data():
     dataset.prepare()
     return dataset
 
+
 def train_model(x_train, y_train, n_estimators):
     model = Bagging(n_estimators=n_estimators, random_seed=42)
     model.fit(x_train, y_train)
     return model
+
 
 def evaluate(y_true, y_pred):
     acc = accuracy_score(y_true, y_pred)
     f1 = f1_score(y_true, y_pred)
     cm = confusion_matrix(y_true, y_pred)
     return acc, f1, cm
+
 
 def tune_model(dataset, n_estimators_list, csv_writer):
     results_acc = {}
@@ -61,7 +65,8 @@ def tune_model(dataset, n_estimators_list, csv_writer):
 
     return best_model, best_params, results_acc, results_f1
 
-def plot_results(values, n_estimators_list, title, ylabel):
+
+def plot_results(values, n_estimators_list, title, ylabel, filename):
     plt.figure()
     plt.plot(n_estimators_list, values, marker='o')
     plt.title(title)
@@ -69,7 +74,9 @@ def plot_results(values, n_estimators_list, title, ylabel):
     plt.ylabel(ylabel)
     plt.xticks(n_estimators_list, rotation=45)
     plt.tight_layout()
-    plt.show()
+    plt.savefig(os.path.join("plots", filename))  # save plot
+    plt.close()
+
 
 def test_model(model, dataset):
     preds = model.predict(dataset.x_test)
@@ -83,11 +90,12 @@ def test_model(model, dataset):
 
     return acc, f1
 
+
 def main():
 
     dataset = load_data()
 
-    n_estimators_list = [1, 5, 10, 15, 20, 30, 40, 50, 75, 100]
+    n_estimators_list = [1, 5, 10, 15, 20, 25, 30, 40, 50, 75, 100]
 
     with open("plots/bagging_results.csv", mode="w", newline="") as file:
         writer = csv.writer(file)
@@ -103,10 +111,12 @@ def main():
     f1_values  = [results_f1[n]  for n in n_estimators_list]
 
     plot_results(acc_values, n_estimators_list,
-                 "Validation Accuracy vs Number of Trees", "Accuracy")
+                 "Validation Accuracy vs Number of Trees", "Accuracy",
+                 "validation_accuracy.png")
 
     plot_results(f1_values, n_estimators_list,
-                 "Validation F1 Score vs Number of Trees", "F1 Score")
+                 "Validation F1 Score vs Number of Trees", "F1 Score",
+                 "validation_f1.png")
 
     print("\n===== BEST MODEL =====")
     print(f"n_estimators: {best_params}")
@@ -118,6 +128,7 @@ def main():
         writer = csv.writer(file)
         writer.writerow([])
         writer.writerow(["TEST", test_acc, test_f1])
+
 
 if __name__ == "__main__":
     main()

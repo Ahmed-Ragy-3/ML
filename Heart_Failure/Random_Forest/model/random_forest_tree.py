@@ -1,7 +1,7 @@
 from typing import Tuple, Union, List, Optional, cast
 import pandas as pd
 import numpy as np
-from Heart_Failure.Decision_Tree.model.node import Node, InternalNode, LeafNode
+from Decision_Tree.model.node import Node, InternalNode, LeafNode
 
 
 class RandomForestTree:
@@ -76,10 +76,6 @@ class RandomForestTree:
             left=left_child,
             right=right_child,
         )
-
-    # ------------------------------------------------------------------
-    # Helpers
-    # ------------------------------------------------------------------
 
     def _resolve_max_features(self, n_features: int) -> int:
         if self.max_features is None:

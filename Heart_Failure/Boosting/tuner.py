@@ -3,8 +3,8 @@ import csv
 import numpy as np
 import matplotlib.pyplot as plt
 
-from Heart_Failure.dataset import Dataset
-from Heart_Failure.Boosting.adaboost import AdaBoost
+from dataset import Dataset
+from Boosting.adaboost import AdaBoost
 from sklearn.metrics import accuracy_score, f1_score, confusion_matrix
 
 

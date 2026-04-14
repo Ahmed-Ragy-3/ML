@@ -1,7 +1,7 @@
 from typing import Tuple, Union, List, Optional, cast
 import pandas as pd
 import numpy as np
-from Heart_Failure.Decision_Tree.model.node import Node, InternalNode, LeafNode
+from Decision_Tree.model.node import Node, InternalNode, LeafNode
 
 class DecisionTree:
     def __init__(self, max_depth: int = 5, min_samples_split: int = 2):

@@ -3,8 +3,8 @@ import csv
 import numpy as np
 import matplotlib.pyplot as plt
 
-from Heart_Failure.dataset import Dataset
-from Heart_Failure.Random_Forest.model.random_forest import RandomForest
+from dataset import Dataset
+from Random_Forest.model.random_forest import RandomForest
 from sklearn.metrics import accuracy_score, f1_score, confusion_matrix
 
 def load_data():
@@ -66,7 +66,7 @@ def tune_model(dataset, n_estimators_list, csv_writer):
 
     return best_model, best_params, results_acc, results_f1
 
-def plot_results(values, n_estimators_list, title, ylabel):
+def plot_results(values, n_estimators_list, title, ylabel, filename):
     plt.figure()
     plt.plot(n_estimators_list, values, marker='o')
     plt.title(title)
@@ -74,7 +74,8 @@ def plot_results(values, n_estimators_list, title, ylabel):
     plt.ylabel(ylabel)
     plt.xticks(n_estimators_list, rotation=45)
     plt.tight_layout()
-    plt.show()
+    plt.savefig(os.path.join("plots", filename))  # save plot
+    plt.close()
 
 def test_model(model, dataset):
     preds = model.predict(dataset.x_test)
@@ -92,7 +93,7 @@ def main():
 
     dataset = load_data()
 
-    n_estimators_list = [1, 5, 10, 15, 20, 30, 40, 50, 75, 100]
+    n_estimators_list = [1, 5, 10, 15, 20, 25, 30, 40, 50, 75, 100]
 
     with open("plots/rf_results.csv", mode="w", newline="") as file:
         writer = csv.writer(file)
@@ -108,10 +109,12 @@ def main():
     f1_values  = [results_f1[n]  for n in n_estimators_list]
 
     plot_results(acc_values, n_estimators_list,
-                 "Validation Accuracy vs Number of Trees", "Accuracy")
+                 "Validation Accuracy vs Number of Trees", "Accuracy",
+                 "validation_accuracy.png")
 
     plot_results(f1_values, n_estimators_list,
-                 "Validation F1 Score vs Number of Trees", "F1 Score")
+                 "Validation F1 Score vs Number of Trees", "F1 Score",
+                 "validation_f1.png")
 
     print("\n===== BEST MODEL =====")
     print(f"n_estimators: {best_params}")

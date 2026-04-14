@@ -106,7 +106,7 @@ def main():
     depths = [2, 3, 4, 5, 6, 7, 8, 9, 10, 12, 14, 16, 18, 20, 22, 24, 26, 28, 30]
     min_samples = [2, 5, 7, 10, 20, 30, 40]
 
-    with open("plots/results.csv", mode="w", newline="") as file:
+    with open("plots/decision_tree_results.csv", mode="w", newline="") as file:
         writer = csv.writer(file)
         writer.writerow(["depth", "min_samples_split", "val_accuracy", "val_f1"])
 
@@ -138,7 +138,7 @@ def main():
     test_acc, test_f1 = test_model(best_model, dataset)
 
     # append test results to CSV
-    with open("plots/results.csv", mode="a", newline="") as file:
+    with open("plots/decision_tree_results.csv", mode="a", newline="") as file:
         writer = csv.writer(file)
         writer.writerow([])
         writer.writerow(["TEST", "", test_acc, test_f1])

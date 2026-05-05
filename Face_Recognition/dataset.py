@@ -51,14 +51,31 @@ class Dataset:
         # This results in 5 instances per person for training and 5 for testing
         return self.X_train, self.y_train, self.X_test, self.y_test
 
+    def save_data(self, folder_name='Processed_DataSet'):
+        """
+        Saves the training and test sets as .npy files for the team to use.
+        """
+        if not os.path.exists(folder_name):
+            os.makedirs(folder_name)
 
-# Example Usage:
+        if self.X_train is None:
+            self.split_data()
+
+        # Save files using descriptive names
+        np.save(os.path.join(folder_name, 'X_train.npy'), self.X_train)
+        np.save(os.path.join(folder_name, 'y_train.npy'), self.y_train)
+        np.save(os.path.join(folder_name, 'X_test.npy'), self.X_test)
+        np.save(os.path.join(folder_name, 'y_test.npy'), self.y_test)
+
+        print(f"Dataset saved successfully in '{folder_name}/'")
+
+
 if __name__ == "__main__":
     path = "./Dataset"
     orl = Dataset(path)
 
-    X_train, y_train, X_test, y_test = orl.split_data()
+    # Load, Split, and Save in one go
+    orl.save_data()
 
-    print(f"Data Matrix D: {orl.D.shape}")
-    print(f"Train Shape: {X_train.shape}")  # Should be (200, 10304)
-    print(f"Test Shape: {X_test.shape}")  # Should be (200, 10304)
+    print(f"Training set instances: {orl.X_train.shape[0]}")  # Should be 200
+    print(f"Testing set instances: {orl.X_test.shape[0]}")  # Should be 200

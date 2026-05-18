@@ -1,112 +1,84 @@
 import numpy as np
-
+from sklearn.cluster import KMeans
 
 class GMM:
-    def __init__(self, n_components=3, max_iter=100, tol=1e-4, reg_covar=1e-6, random_state=42):
+    def __init__(self, n_components=10, max_iter=50, tol=1e-4, reg_covar=1e-6, random_state=42):
         self.K = n_components
         self.max_iter = max_iter
         self.tol = tol
         self.reg_covar = reg_covar
         self.random_state = random_state
 
-    def gaussian_pdf(self, X, mean, cov):
-        n, d = X.shape
-
-        cov = cov + self.reg_covar * np.eye(d)
-        inv_cov = np.linalg.inv(cov)
-        det_cov = np.linalg.det(cov)
-
-        norm_const = 1.0 / np.sqrt(((2 * np.pi) ** d) * det_cov)
-
+    def gaussian_log_pdf(self, X, mean, cov_inv, log_det):
+        d = X.shape[1]
         diff = X - mean
-        exponent = -0.5 * np.sum((diff @ inv_cov) * diff, axis=1)
-
-        return norm_const * np.exp(exponent)
+        maha = np.sum((diff @ cov_inv) * diff, axis=1)
+        return -0.5 * (d * np.log(2 * np.pi) + log_det + maha)
 
     def initialize(self, X):
-        np.random.seed(self.random_state)
-
         n, d = X.shape
 
-        random_idx = np.random.choice(n, self.K, replace=False)
-        self.means = X[random_idx]
+        kmeans = KMeans(
+            n_clusters=self.K,
+            random_state=self.random_state,
+            n_init=10
+        )
+        labels = kmeans.fit_predict(X)
 
-        base_cov = np.cov(X.T) + self.reg_covar * np.eye(d)
+        self.means = kmeans.cluster_centers_
 
-        self.covs = np.array([base_cov.copy() for _ in range(self.K)])
-
-        self.weights = np.ones(self.K) / self.K
-
-    def e_step(self, X):
-        n = X.shape[0]
-
-        responsibilities = np.zeros((n, self.K))
-
-        for k in range(self.K):
-            responsibilities[:, k] = self.weights[k] * self.gaussian_pdf(
-                X, self.means[k], self.covs[k]
-            )
-
-        responsibilities /= responsibilities.sum(axis=1, keepdims=True)
-
-        return responsibilities
-
-    def m_step(self, X, R):
-        n, d = X.shape
-
-        Nk = R.sum(axis=0)
-
+        Nk = np.bincount(labels, minlength=self.K).astype(float)
         self.weights = Nk / n
 
-        self.means = (R.T @ X) / Nk[:, None]
-
-        self.covs = []
+        self.covariances = np.zeros((self.K, d, d))
 
         for k in range(self.K):
             diff = X - self.means[k]
-
-            cov = (R[:, k][:, None] * diff).T @ diff / Nk[k]
-
+            cov = (diff.T @ diff) / n
             cov += self.reg_covar * np.eye(d)
+            self.covariances[k] = cov
 
-            self.covs.append(cov)
-
-        self.covs = np.array(self.covs)
-
-    def compute_log_likelihood(self, X):
-        n = X.shape[0]
-
-        total = np.zeros((n, self.K))
+    def e_step(self, X):
+        n, d = X.shape
+        log_resp = np.zeros((n, self.K))
 
         for k in range(self.K):
-            total[:, k] = self.weights[k] * self.gaussian_pdf(
-                X, self.means[k], self.covs[k]
-            )
+            cov = self.covariances[k] + self.reg_covar * np.eye(d)
 
-        return np.sum(np.log(total.sum(axis=1)))
+            inv_cov = np.linalg.inv(cov)
+            sign, log_det = np.linalg.slogdet(cov)
+
+            log_resp[:, k] = np.log(self.weights[k] + 1e-12) + \
+                self.gaussian_log_pdf(X, self.means[k], inv_cov, log_det)
+
+        log_resp -= np.max(log_resp, axis=1, keepdims=True)
+        resp = np.exp(log_resp)
+        resp /= np.sum(resp, axis=1, keepdims=True)
+
+        return resp
+
+    def m_step(self, X, R):
+        n, d = X.shape
+        Nk = R.sum(axis=0) + 1e-12
+
+        self.weights = Nk / n
+        self.means = (R.T @ X) / Nk[:, None]
+
+        for k in range(self.K):
+            diff = X - self.means[k]
+            weighted = R[:, k][:, None] * diff
+
+            cov = (weighted.T @ diff) / Nk[k]
+            cov += self.reg_covar * np.eye(d)
+
+            self.covariances[k] = cov
 
     def fit(self, X):
         self.initialize(X)
 
-        prev_ll = None
-
-        for iteration in range(self.max_iter):
-
+        for _ in range(self.max_iter):
             R = self.e_step(X)
-
             self.m_step(X, R)
 
-            ll = self.compute_log_likelihood(X)
-
-            if prev_ll is not None and abs(ll - prev_ll) < self.tol:
-                print(f"Converged at iteration {iteration}")
-                break
-
-            prev_ll = ll
-
     def predict(self, X):
-        R = self.e_step(X)
-        return np.argmax(R, axis=1)
-
-    def predict_proba(self, X):
-        return self.e_step(X)
+        return np.argmax(self.e_step(X), axis=1)

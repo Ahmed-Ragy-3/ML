@@ -1,0 +1,34 @@
+Dataset shape: (200, 10304)  (200 samples, 10304 features)
+Saved cumulative variance plot → pca_cumulative_variance.png
+
+=======================================================
+  Variance threshold α = 0.8
+  Selected k           : 37
+  Original shape       : (200, 10304)
+  Reduced shape        : (200, 37)
+  Variance retained    : 0.8026
+  Saved face grid → pca_faces_alpha_0.8.png
+
+=======================================================
+  Variance threshold α = 0.85
+  Selected k           : 53
+  Original shape       : (200, 10304)
+  Reduced shape        : (200, 53)
+  Variance retained    : 0.8523
+  Saved face grid → pca_faces_alpha_0.85.png
+
+=======================================================
+  Variance threshold α = 0.9
+  Selected k           : 77
+  Original shape       : (200, 10304)
+  Reduced shape        : (200, 77)
+  Variance retained    : 0.9008
+  Saved face grid → pca_faces_alpha_0.9.png
+
+=======================================================
+  Variance threshold α = 0.95
+  Selected k           : 116
+  Original shape       : (200, 10304)
+  Reduced shape        : (200, 116)
+  Variance retained    : 0.9501
+  Saved face grid → pca_faces_alpha_0.95.png

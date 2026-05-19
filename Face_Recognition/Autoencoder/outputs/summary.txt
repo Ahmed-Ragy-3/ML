@@ -1,50 +1,60 @@
 ==================== AUTOENCODER TRAINING ====================
 
-Architecture: 10304 → 1024 → 128 → 1024 → 10304
+Architecture: 10304 → 512 → 256 → 512 → 10304
 Loss: MSE  ||x - x̃||²
-Epoch 1/100, Loss=0.038191
-Epoch 10/100, Loss=0.023765
-Epoch 20/100, Loss=0.017601
-Epoch 30/100, Loss=0.014796
-Epoch 40/100, Loss=0.013749
-Epoch 50/100, Loss=0.012056
-Epoch 60/100, Loss=0.013285
-Epoch 70/100, Loss=0.011495
-Epoch 80/100, Loss=0.009845
-Epoch 90/100, Loss=0.009438
-Epoch 100/100, Loss=0.009478
+Epoch 1/200, Loss=0.039702
+Epoch 10/200, Loss=0.024632
+Epoch 20/200, Loss=0.016871
+Epoch 30/200, Loss=0.014993
+Epoch 40/200, Loss=0.013280
+Epoch 50/200, Loss=0.010994
+Epoch 60/200, Loss=0.010646
+Epoch 70/200, Loss=0.008904
+Epoch 80/200, Loss=0.008234
+Epoch 90/200, Loss=0.006716
+Epoch 100/200, Loss=0.006986
+Epoch 110/200, Loss=0.005895
+Epoch 120/200, Loss=0.006165
+Epoch 130/200, Loss=0.004773
+Epoch 140/200, Loss=0.004673
+Epoch 150/200, Loss=0.004535
+Epoch 160/200, Loss=0.004066
+Epoch 170/200, Loss=0.002955
+Epoch 180/200, Loss=0.003392
+Epoch 190/200, Loss=0.002911
+Epoch 200/200, Loss=0.003476
 
-  Latent code: train=(200, 128), test=(200, 128)
+  Latent code: train=(200, 256), test=(200, 256)
 
 ==================== EXPERIMENT START ====================
 
 
 ---- K-Means | K=20 ----
-  K-Means converged at iteration 6
-  Accuracy : 0.3050
-  Macro F1 : 0.2050
+  K-Means converged at iteration 7
+  Accuracy : 0.3950
+  Macro F1 : 0.2682
 
 ---- GMM | K=20 ----
-  Accuracy : 0.2050
-  Macro F1 : 0.1300
+  Accuracy : 0.4000
+  Macro F1 : 0.2799
 
 ---- K-Means | K=40 ----
   K-Means converged at iteration 9
-  Accuracy : 0.5050
-  Macro F1 : 0.4307
+  Accuracy : 0.6450
+  Macro F1 : 0.5902
 
 ---- GMM | K=40 ----
-  Accuracy : 0.1300
-  Macro F1 : 0.1090
+  Accuracy : 0.6100
+  Macro F1 : 0.5545
 
 ---- K-Means | K=60 ----
-  K-Means converged at iteration 8
-  Accuracy : 0.5900
-  Macro F1 : 0.5636
+  K-Means converged at iteration 4
+  Accuracy : 0.7300
+  Macro F1 : 0.7189
 
 ---- GMM | K=60 ----
-  Accuracy : 0.2850
-  Macro F1 : 0.2438
+  Accuracy : 0.7250
+  Macro F1 : 0.7048
 
 ==================== EXPERIMENT DONE ====================
 
@@ -53,6 +63,6 @@ Epoch 100/100, Loss=0.009478
 
      K |   KMeans Acc |  KMeans Macro F1 |    GMM Acc |   GMM Macro F1
   ----------------------------------------------------------------
-    20 |       0.3050 |           0.2050 |     0.2050 |         0.1300
-    40 |       0.5050 |           0.4307 |     0.1300 |         0.1090
-    60 |       0.5900 |           0.5636 |     0.2850 |         0.2438
+    20 |       0.3950 |           0.2682 |     0.4000 |         0.2799
+    40 |       0.6450 |           0.5902 |     0.6100 |         0.5545
+    60 |       0.7300 |           0.7189 |     0.7250 |         0.7048

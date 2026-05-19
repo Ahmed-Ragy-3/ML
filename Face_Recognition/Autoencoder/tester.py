@@ -50,11 +50,11 @@ def run_experiment():
 
     # ── 1. Train Autoencoder ──────────────────────────────────────────────
     print("\n==================== AUTOENCODER TRAINING ====================\n")
-    print(f"Architecture: {input_dim} → 1024 → 256 → 1024 → {input_dim}")
+    print(f"Architecture: {input_dim} → 512 → 256 → 512 → {input_dim}")
     print(f"Loss: MSE  ||x - x̃||²")
 
-    ae = DeepAutoencoder(input_dim=input_dim, hidden1=1024, bottleneck=256)
-    ae, losses = DeepAutoencoder.train_autoencoder(ae, X_train_tensor, epochs=100, lr=1e-3, batch_size=32)
+    ae = DeepAutoencoder(input_dim=input_dim, hidden1=512, bottleneck=256)
+    ae, losses = DeepAutoencoder.train_autoencoder(ae, X_train_tensor, epochs=200, lr=1e-3, batch_size=32)
 
     # Training loss curve
     plt.figure(figsize=(7, 4))

@@ -1,0 +1,134 @@
+==================== EXPERIMENT START ====================
+
+
+==================== ALPHA = 0.8 ====================
+  PCA dimensionality: 36
+
+---- Training K-Means | alpha=0.8 | K=20 ----
+  K-Means converged at iteration 5
+  Cost J   : 1071378496.00
+  Accuracy : 0.4000
+  F1-score (macro): 0.2717
+
+---- Training K-Means | alpha=0.8 | K=40 ----
+  K-Means converged at iteration 8
+  Cost J   : 675775744.00
+  Accuracy : 0.6800
+  F1-score (macro): 0.6176
+
+---- Training K-Means | alpha=0.8 | K=60 ----
+  K-Means converged at iteration 3
+  Cost J   : 481962880.00
+  Accuracy : 0.7550
+  F1-score (macro): 0.7301
+
+==================== ALPHA = 0.85 ====================
+  PCA dimensionality: 51
+
+---- Training K-Means | alpha=0.85 | K=20 ----
+  K-Means converged at iteration 5
+  Cost J   : 1205357440.00
+  Accuracy : 0.3900
+  F1-score (macro): 0.2705
+
+---- Training K-Means | alpha=0.85 | K=40 ----
+  K-Means converged at iteration 4
+  Cost J   : 798365888.00
+  Accuracy : 0.6950
+  F1-score (macro): 0.6496
+
+---- Training K-Means | alpha=0.85 | K=60 ----
+  K-Means converged at iteration 4
+  Cost J   : 562541120.00
+  Accuracy : 0.8200
+  F1-score (macro): 0.8026
+
+==================== ALPHA = 0.9 ====================
+  PCA dimensionality: 76
+
+---- Training K-Means | alpha=0.9 | K=20 ----
+  K-Means converged at iteration 5
+  Cost J   : 1379494912.00
+  Accuracy : 0.3800
+  F1-score (macro): 0.2712
+
+---- Training K-Means | alpha=0.9 | K=40 ----
+  K-Means converged at iteration 5
+  Cost J   : 927596224.00
+  Accuracy : 0.6550
+  F1-score (macro): 0.5977
+
+---- Training K-Means | alpha=0.9 | K=60 ----
+  K-Means converged at iteration 4
+  Cost J   : 688287296.00
+  Accuracy : 0.7650
+  F1-score (macro): 0.7387
+
+==================== ALPHA = 0.95 ====================
+  PCA dimensionality: 115
+
+---- Training K-Means | alpha=0.95 | K=20 ----
+  K-Means converged at iteration 5
+  Cost J   : 1552334464.00
+  Accuracy : 0.3900
+  F1-score (macro): 0.2859
+
+---- Training K-Means | alpha=0.95 | K=40 ----
+  K-Means converged at iteration 6
+  Cost J   : 1046596288.00
+  Accuracy : 0.6500
+  F1-score (macro): 0.5856
+
+---- Training K-Means | alpha=0.95 | K=60 ----
+  K-Means converged at iteration 4
+  Cost J   : 824658176.00
+  Accuracy : 0.7350
+  F1-score (macro): 0.7078
+
+==================== EXPERIMENT DONE ====================
+
+
+==================== FULL RESULTS TABLE ====================
+
+   Alpha |    K |   Accuracy |   F1 (macro) |         Cost J
+  ------------------------------------------------------
+    0.80 |   20 |     0.4000 |       0.2717 |  1071378496.00
+    0.80 |   40 |     0.6800 |       0.6176 |   675775744.00
+    0.80 |   60 |     0.7550 |       0.7301 |   481962880.00
+    0.85 |   20 |     0.3900 |       0.2705 |  1205357440.00
+    0.85 |   40 |     0.6950 |       0.6496 |   798365888.00
+    0.85 |   60 |     0.8200 |       0.8026 |   562541120.00
+    0.90 |   20 |     0.3800 |       0.2712 |  1379494912.00
+    0.90 |   40 |     0.6550 |       0.5977 |   927596224.00
+    0.90 |   60 |     0.7650 |       0.7387 |   688287296.00
+    0.95 |   20 |     0.3900 |       0.2859 |  1552334464.00
+    0.95 |   40 |     0.6500 |       0.5856 |  1046596288.00
+    0.95 |   60 |     0.7350 |       0.7078 |   824658176.00
+
+-- Mean accuracy per alpha --
+  alpha=0.8 : 0.6117
+  alpha=0.85 : 0.6350
+  alpha=0.9 : 0.6000
+  alpha=0.95 : 0.5917
+
+-- Mean macro F1 per alpha --
+  alpha=0.8 : 0.5398
+  alpha=0.85 : 0.5742
+  alpha=0.9 : 0.5359
+  alpha=0.95 : 0.5265
+
+-- Mean accuracy per K --
+  K=20 : 0.3900
+  K=40 : 0.6700
+  K=60 : 0.7687
+
+-- Mean macro F1 per K --
+  K=20 : 0.2748
+  K=40 : 0.6126
+  K=60 : 0.7448
+
+==================== BEST MODEL (by Macro F1) ====================
+
+  alpha=0.85, K=60
+  Accuracy      : 0.8200
+  Macro F1-score: 0.8026

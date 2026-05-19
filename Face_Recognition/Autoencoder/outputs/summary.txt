@@ -1,0 +1,61 @@
+==================== AUTOENCODER TRAINING ====================
+
+Architecture: 10304 → 64 → 10304
+Loss: MSE  ||x - x̃||²
+  Epoch    1/100  MSE Loss: 0.244095
+  Epoch   20/100  MSE Loss: 0.022482
+  Epoch   40/100  MSE Loss: 0.021966
+  Epoch   60/100  MSE Loss: 0.021903
+  Epoch   80/100  MSE Loss: 0.020380
+  Epoch  100/100  MSE Loss: 0.018963
+
+  Latent code: train=(200, 64), test=(200, 64)
+
+==================== EXPERIMENT START ====================
+
+
+---- K-Means | K=20 ----
+  K-Means converged at iteration 13
+  Accuracy : 0.2650
+  Macro F1 : 0.1816
+
+---- GMM | K=20 ----
+  Accuracy : 0.3600
+  Macro F1 : 0.2587
+
+---- K-Means | K=40 ----
+  K-Means converged at iteration 5
+  Accuracy : 0.4050
+  Macro F1 : 0.3675
+
+---- GMM | K=40 ----
+  Accuracy : 0.4300
+  Macro F1 : 0.3749
+
+---- K-Means | K=60 ----
+  K-Means converged at iteration 13
+  Accuracy : 0.5150
+  Macro F1 : 0.4815
+
+---- GMM | K=60 ----
+  Accuracy : 0.4750
+  Macro F1 : 0.4273
+
+==================== EXPERIMENT DONE ====================
+
+
+==================== FULL RESULTS TABLE ====================
+
+     K |   KMeans Acc |  KMeans Macro F1 |    GMM Acc |   GMM Macro F1
+  ----------------------------------------------------------------
+    20 |       0.2650 |           0.1816 |     0.3600 |         0.2587
+    40 |       0.4050 |           0.3675 |     0.4300 |         0.3749
+    60 |       0.5150 |           0.4815 |     0.4750 |         0.4273
+
+==================== BEST K-MEANS (by Macro F1, K=60) ====================
+  Accuracy : 0.5150
+  Macro F1 : 0.4815
+
+==================== BEST GMM (by Macro F1, K=60) ====================
+  Accuracy : 0.4750
+  Macro F1 : 0.4273

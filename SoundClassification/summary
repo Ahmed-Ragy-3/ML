@@ -1,0 +1,33 @@
+D:\GitHub\ML\SoundClassification\.venv\Scripts\python.exe D:\GitHub\ML\SoundClassification\main.py
+Loading datasets...
+Preprocessing datasets (if needed)...
+Starting preprocessing for folds: [1, 2, 3, 4, 5, 6]...
+Preprocessing completed. Ready samples: 5435
+Starting preprocessing for folds: [7, 8]...
+Preprocessing completed. Ready samples: 1644
+Starting preprocessing for folds: [9, 10]...
+Preprocessing completed. Ready samples: 1653
+Creating DataLoaders...
+Initializing model and trainer...
+Trainer initialized on device: cpu
+Starting training...
+
+--- Commencing Training ---
+Epoch 01 | Train Loss: 1.3086 (Acc: 55.40%) | Val Loss: 1.2165 (Acc: 58.94%)
+--> Improvement found! Model saved to best_model.pth
+Epoch 02 | Train Loss: 0.7927 (Acc: 73.39%) | Val Loss: 1.2260 (Acc: 59.49%)
+Epoch 03 | Train Loss: 0.6232 (Acc: 80.17%) | Val Loss: 1.2318 (Acc: 64.36%)
+Epoch 04 | Train Loss: 0.5164 (Acc: 82.91%) | Val Loss: 1.1772 (Acc: 61.19%)
+--> Improvement found! Model saved to best_model.pth
+Epoch 05 | Train Loss: 0.4358 (Acc: 86.16%) | Val Loss: 1.1809 (Acc: 64.23%)
+Epoch 06 | Train Loss: 0.3690 (Acc: 88.43%) | Val Loss: 1.1828 (Acc: 65.57%)
+Epoch 07 | Train Loss: 0.3164 (Acc: 89.48%) | Val Loss: 1.3371 (Acc: 64.48%)
+Early stopping triggered at epoch 7
+Running final evaluation...
+
+--- Running Final Evaluation ---
+Test Accuracy : 63.70%
+Test F1-Score : 0.6663
+Saved matrix to 'confusion_matrix.png'
+
+Process finished with exit code 0

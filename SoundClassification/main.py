@@ -166,19 +166,35 @@ def main():
    # Experiment 4 (BONUS): CNN-GRU + Mel (150 features)
    # ═════════════════════════════════════════════════════════════════════════
    print("\n" + "═" * 70)
-   print("Experiment 4 of 4 – CNN-GRU + Mel (BONUS) (150 features)")
+   print("Evaluate saved CNN-GRU + Mel")
    print("═" * 70)
 
+   # build test loaders
    train_l, val_l, test_l = build_loaders("mel")
+
+   # recreate same architecture
    model_cnn_gru = CNNGRUClassifier(
        input_size=150,
        cnn_channels=[32, 64],
        gru_hidden=128,
        gru_layers=2,
    )
-   results["CNN-GRU-Mel"] = run_experiment(
-       "CNN-GRU-Mel", model_cnn_gru, train_l, val_l, test_l
+
+   # trainer
+   trainer = ModelTrainer(
+       model_cnn_gru,
+       train_l,
+       val_l,
+       test_l,
+       experiment_name="CNN-GRU-Mel",
    )
+
+   # evaluate saved checkpoint
+   metrics = trainer.evaluate(
+       load_path="FinalData/Mel_CNN_GRUFindings_Bonus/CNN-GRU-Mel_best.pth"
+   )
+
+   print(metrics)
 
    # ── Final comparison ──────────────────────────────────────────────────────
    print("\n" + "=" * 70)

@@ -103,3 +103,19 @@ Experiment 3 of 4 – GRU + MFCC (40 features)
   Test Accuracy : 56.56%
   Test F1-Score : 0.5696
   Confusion matrix saved to 'GRU-MFCC_confusion_matrix.png'
+══════════════════════════════════════════════════════════════════════
+Evaluate saved CNN-GRU + Mel
+══════════════════════════════════════════════════════════════════════
+[MEL] Preprocessing folds [1, 2, 3, 4, 5, 6] ...
+[MEL] Done – 5435 samples ready.
+[MEL] Preprocessing folds [7, 8] ...
+[MEL] Done – 1644 samples ready.
+[MEL] Preprocessing folds [9, 10] ...
+[MEL] Done – 1653 samples ready.
+[CNN-GRU-Mel] Trainer on device: cpu
+
+[CNN-GRU-Mel] ── Final Evaluation on Test Set ──
+  Test Accuracy : 59.83%
+  Test F1-Score : 0.6144
+  Confusion matrix saved to 'CNN-GRU-Mel_confusion_matrix.png'
+{'accuracy': 0.5983061101028433, 'f1': 0.6143850444980481}

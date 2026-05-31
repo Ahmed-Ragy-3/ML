@@ -1,3 +1,17 @@
+"""
+dataset.py – UrbanSound8K feature dataset.
+
+Supports three feature modes:
+    'mel'    – Log-Mel Spectrogram  (150 mel bins)  → input_size = 150
+    'energy' – Frame-level RMS energy (1 feature)   → input_size = 1
+    'mfcc'   – MFCCs                 (40 coeffs)    → input_size = 40
+
+All modes:
+    • Sample rate : 22 050 Hz
+    • Batch size  : 32
+    • Variable-length sequences padded inside collate_batches()
+"""
+
 import pandas as pd
 from pathlib import Path
 import torch
@@ -5,123 +19,202 @@ import torchaudio
 from torch.utils.data import Dataset
 import soundfile as sf
 
+# ──────────────────────────────────────────────────────────────────────────────
+# Constants
+# ──────────────────────────────────────────────────────────────────────────────
+SAMPLE_RATE = 22_050
+N_FFT = 1024
+HOP_LENGTH = 512
+N_MELS = 150        # Mel bins
+N_MFCC = 40         # MFCC coefficients
+BATCH_SIZE = 32
+
 
 class UrbanSoundFeatureDataset(Dataset):
-    def __init__(
-        self,
-        folds=(1, 2, 3, 4, 5, 6),
-        root_dir="UrbanSound8K",
-        processed_dir="processed",
-        sample_rate=16000,
-        n_fft=1024,
-        hop_length=512,
-        n_mels=64
-    ):
-        self.root_dir = Path(root_dir)
-        self.audio_dir = self.root_dir / "audio"
-        self.csv_path = self.root_dir / "metadata" / "UrbanSound8K.csv"
-        self.processed_dir = self.root_dir / processed_dir
-        self.processed_dir.mkdir(parents=True, exist_ok=True)
+   """
+   Loads UrbanSound8K audio, extracts a chosen feature type and caches
+   the result as a .pt file so that subsequent runs are fast.
 
-        self.sample_rate = sample_rate
-        self.n_fft = n_fft
-        self.hop_length = hop_length
-        self.n_mels = n_mels
+   Parameters
+   ----------
+   folds        : which dataset folds to include
+   root_dir     : top-level UrbanSound8K directory
+   processed_dir: sub-directory for cached .pt features
+   feature_type : 'mel' | 'energy' | 'mfcc'
+   """
 
-        full_df = pd.read_csv(self.csv_path)
-        self.df = full_df[full_df["fold"].isin(folds)].reset_index(drop=True)
+   FEATURE_TYPES = ("mel", "energy", "mfcc")
 
-        self.mel_transform = torchaudio.transforms.MelSpectrogram(
-            sample_rate=sample_rate,
-            n_fft=n_fft,
-            hop_length=hop_length,
-            n_mels=n_mels
-        )
-        self.resampler_cache = {}
+   def __init__(
+       self,
+       folds=(1, 2, 3, 4, 5, 6),
+       root_dir="UrbanSound8K",
+       processed_dir="processed",
+       feature_type="mel",
+   ):
+      if feature_type not in self.FEATURE_TYPES:
+         raise ValueError(f"feature_type must be one of {self.FEATURE_TYPES}")
 
-        self.samples = []
+      self.root_dir = Path(root_dir)
+      self.audio_dir = self.root_dir / "audio"
+      self.csv_path = self.root_dir / "metadata" / "UrbanSound8K.csv"
+      self.feature_type = feature_type
 
-    def _processed_path(self, row):
-        return self.processed_dir / f"fold{int(row['fold'])}_{Path(row['slice_file_name']).stem}.pt"
+      # Each feature type gets its own cache sub-directory to avoid mixing
+      cache_subdir = f"{processed_dir}_{feature_type}"
+      self.processed_dir = self.root_dir / cache_subdir
+      self.processed_dir.mkdir(parents=True, exist_ok=True)
 
-    def extract_features(self, audio_path):
-        data, sr = sf.read(audio_path)
-        waveform = torch.from_numpy(data).float()
+      full_df = pd.read_csv(self.csv_path)
+      self.df = full_df[full_df["fold"].isin(folds)].reset_index(drop=True)
 
-        if waveform.ndim == 1:
-            waveform = waveform.unsqueeze(0)
-        else:
-            waveform = waveform.transpose(0, 1)
+      # ── Transforms ────────────────────────────────────────────────────────
+      self.mel_transform = torchaudio.transforms.MelSpectrogram(
+          sample_rate=SAMPLE_RATE,
+          n_fft=N_FFT,
+          hop_length=HOP_LENGTH,
+          n_mels=N_MELS,
+      )
+      self.mfcc_transform = torchaudio.transforms.MFCC(
+          sample_rate=SAMPLE_RATE,
+          n_mfcc=N_MFCC,
+          melkwargs={
+              "n_fft":       N_FFT,
+              "hop_length":  HOP_LENGTH,
+              "n_mels":      N_MELS,
+          },
+      )
+      self.resampler_cache: dict = {}
+      self.samples: list = []
 
-        if waveform.shape[0] > 1:
-            waveform = waveform.mean(dim=0, keepdim=True)
+   # ── Internal helpers ──────────────────────────────────────────────────────
 
-        if sr != self.sample_rate:
-            if sr not in self.resampler_cache:
-                self.resampler_cache[sr] = torchaudio.transforms.Resample(sr, self.sample_rate)
-            waveform = self.resampler_cache[sr](waveform)
+   def _processed_path(self, row) -> Path:
+      stem = Path(row["slice_file_name"]).stem
+      return self.processed_dir / f"fold{int(row['fold'])}_{stem}.pt"
 
-        features = self.mel_transform(waveform)
-        features = torch.log(features + 1e-9)
-        features = features.squeeze(0).transpose(0, 1)  # (time, mel)
+   def _load_waveform(self, audio_path) -> torch.Tensor:
+      """Read audio, convert to mono, resample to SAMPLE_RATE."""
+      data, sr = sf.read(str(audio_path))
+      waveform = torch.from_numpy(data).float()
 
-        return (features - features.mean()) / (features.std() + 1e-9)
+      # Ensure shape (channels, time)
+      if waveform.ndim == 1:
+         waveform = waveform.unsqueeze(0)
+      else:
+         waveform = waveform.transpose(0, 1)
 
-    def preprocess_all(self):
-        print(f"Starting preprocessing for folds: {sorted(self.df['fold'].unique().tolist())}...")
+      # Mix down to mono
+      if waveform.shape[0] > 1:
+         waveform = waveform.mean(dim=0, keepdim=True)
 
-        failed = []
-        for _, row in self.df.iterrows():
-            output_file = self._processed_path(row)
+      # Resample if necessary
+      if sr != SAMPLE_RATE:
+         if sr not in self.resampler_cache:
+            self.resampler_cache[sr] = torchaudio.transforms.Resample(
+                sr, SAMPLE_RATE
+            )
+         waveform = self.resampler_cache[sr](waveform)
 
-            if output_file.exists():
-                continue
+      return waveform  # shape: (1, time)
 
-            try:
-                audio_path = self.audio_dir / f"fold{int(row['fold'])}" / row["slice_file_name"]
-                features = self.extract_features(audio_path)
-                torch.save(
-                    {
-                        "features": features,
-                        "label": int(row["classID"])
-                    },
-                    output_file
-                )
-            except Exception as e:
-                failed.append((row["slice_file_name"], str(e)))
-                print(f"Failed on {row['slice_file_name']}: {e}")
+   def _normalize(self, x: torch.Tensor) -> torch.Tensor:
+      """Zero-mean, unit-variance normalisation."""
+      return (x - x.mean()) / (x.std() + 1e-9)
 
-        self.rebuild_index()
+   # ── Feature extraction ────────────────────────────────────────────────────
 
-        print(f"Preprocessing completed. Ready samples: {len(self.samples)}")
-        if failed:
-            print(f"Total failed files: {len(failed)}")
+   def extract_features(self, audio_path) -> torch.Tensor:
+      """
+      Returns a 2-D tensor of shape (time_frames, feature_dim).
+      """
+      waveform = self._load_waveform(audio_path)
 
-    def rebuild_index(self):
-        self.samples = []
-        for _, row in self.df.iterrows():
-            file_path = self._processed_path(row)
-            if file_path.exists():
-                self.samples.append((file_path, int(row["classID"])))
+      if self.feature_type == "mel":
+         spec = self.mel_transform(waveform)          # (1, n_mels, T)
+         spec = torch.log(spec + 1e-9)
+         feat = spec.squeeze(0).transpose(0, 1)       # (T, 150)
 
-    def __len__(self):
-        return len(self.samples)
+      elif self.feature_type == "energy":
+         # Frame-level RMS energy computed over the same windows as FFT
+         # waveform: (1, N)
+         signal = waveform.squeeze(0)                 # (N,)
+         # unfold into overlapping frames
+         frames = signal.unfold(0, N_FFT, HOP_LENGTH)  # (T, n_fft)
+         rms = frames.pow(2).mean(dim=-1, keepdim=True).sqrt()  # (T, 1)
+         feat = rms                                 # (T, 1)
 
-    def __getitem__(self, idx):
-        file_path, label = self.samples[idx]
-        item = torch.load(file_path)
-        return item["features"], label
+      elif self.feature_type == "mfcc":
+         mfcc = self.mfcc_transform(waveform)         # (1, n_mfcc, T)
+         feat = mfcc.squeeze(0).transpose(0, 1)       # (T, 40)
 
-    @staticmethod
-    def collate_batches(batch):
-        features = [item[0] for item in batch]
-        labels = torch.tensor([item[1] for item in batch], dtype=torch.long)
-        lengths = torch.tensor([x.size(0) for x in features], dtype=torch.long)
+      else:
+         raise ValueError(f"Unknown feature_type: {self.feature_type}")
 
-        padded_features = torch.nn.utils.rnn.pad_sequence(
-            features,
-            batch_first=True,
-            padding_value=0.0
-        )
+      return self._normalize(feat)
 
-        return padded_features, lengths, labels
+   # ── Pre-processing ────────────────────────────────────────────────────────
+
+   def preprocess_all(self):
+      folds_str = sorted(self.df["fold"].unique().tolist())
+      print(
+          f"[{self.feature_type.upper()}] Preprocessing folds {folds_str} ..."
+      )
+      failed = []
+
+      for _, row in self.df.iterrows():
+         out_path = self._processed_path(row)
+         if out_path.exists():
+            continue
+         try:
+            audio_path = (
+                self.audio_dir
+                / f"fold{int(row['fold'])}"
+                / row["slice_file_name"]
+            )
+            features = self.extract_features(audio_path)
+            torch.save(
+                {"features": features, "label": int(row["classID"])},
+                out_path,
+            )
+         except Exception as exc:
+            failed.append((row["slice_file_name"], str(exc)))
+            print(f"  FAILED {row['slice_file_name']}: {exc}")
+
+      self.rebuild_index()
+      print(
+          f"[{self.feature_type.upper()}] Done – {len(self.samples)} samples ready."
+      )
+      if failed:
+         print(f"  Total failed: {len(failed)}")
+
+   def rebuild_index(self):
+      self.samples = []
+      for _, row in self.df.iterrows():
+         fp = self._processed_path(row)
+         if fp.exists():
+            self.samples.append((fp, int(row["classID"])))
+
+   # ── Dataset interface ─────────────────────────────────────────────────────
+
+   def __len__(self) -> int:
+      return len(self.samples)
+
+   def __getitem__(self, idx):
+      file_path, label = self.samples[idx]
+      item = torch.load(file_path, weights_only=True)
+      return item["features"], label
+
+   # ── Collation ─────────────────────────────────────────────────────────────
+
+   @staticmethod
+   def collate_batches(batch):
+      """Pad variable-length sequences to the longest in the batch."""
+      features = [item[0] for item in batch]
+      labels = torch.tensor([item[1] for item in batch], dtype=torch.long)
+      lengths = torch.tensor([x.size(0) for x in features], dtype=torch.long)
+
+      padded = torch.nn.utils.rnn.pad_sequence(
+          features, batch_first=True, padding_value=0.0
+      )
+      return padded, lengths, labels

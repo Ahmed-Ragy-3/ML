@@ -134,33 +134,33 @@ def main():
    #     "GRU-Mel", model_mel, train_l, val_l, test_l
    # )
 
-   # ═════════════════════════════════════════════════════════════════════════
-   # Experiment 2: GRU + Energy (1 feature)
-   # ═════════════════════════════════════════════════════════════════════════
-   print("\n" + "═" * 70)
-   print("Experiment 2 of 4 – GRU + Energy (1 feature)")
-   print("═" * 70)
-
-   train_l, val_l, test_l = build_loaders("energy")
-   model_energy = EnvironmentalGRUClassifier(
-       input_size=1, hidden_size=64, num_layers=2
-   )
-   results["GRU-Energy"] = run_experiment(
-       "GRU-Energy", model_energy, train_l, val_l, test_l
-   )
-
-   # ═════════════════════════════════════════════════════════════════════════
-   # Experiment 3: GRU + MFCC (40 features)
-   # ═════════════════════════════════════════════════════════════════════════
-   print("\n" + "═" * 70)
-   print("Experiment 3 of 4 – GRU + MFCC (40 features)")
-   print("═" * 70)
-
-   train_l, val_l, test_l = build_loaders("mfcc")
-   model_mfcc = EnvironmentalGRUClassifier(input_size=40)
-   results["GRU-MFCC"] = run_experiment(
-       "GRU-MFCC", model_mfcc, train_l, val_l, test_l
-   )
+   # # ═════════════════════════════════════════════════════════════════════════
+   # # Experiment 2: GRU + Energy (1 feature)
+   # # ═════════════════════════════════════════════════════════════════════════
+   # print("\n" + "═" * 70)
+   # print("Experiment 2 of 4 – GRU + Energy (1 feature)")
+   # print("═" * 70)
+   #
+   # train_l, val_l, test_l = build_loaders("energy")
+   # model_energy = EnvironmentalGRUClassifier(
+   #     input_size=1, hidden_size=64, num_layers=2
+   # )
+   # results["GRU-Energy"] = run_experiment(
+   #     "GRU-Energy", model_energy, train_l, val_l, test_l
+   # )
+   #
+   # # ═════════════════════════════════════════════════════════════════════════
+   # # Experiment 3: GRU + MFCC (40 features)
+   # # ═════════════════════════════════════════════════════════════════════════
+   # print("\n" + "═" * 70)
+   # print("Experiment 3 of 4 – GRU + MFCC (40 features)")
+   # print("═" * 70)
+   #
+   # train_l, val_l, test_l = build_loaders("mfcc")
+   # model_mfcc = EnvironmentalGRUClassifier(input_size=40)
+   # results["GRU-MFCC"] = run_experiment(
+   #     "GRU-MFCC", model_mfcc, train_l, val_l, test_l
+   # )
 
    # ═════════════════════════════════════════════════════════════════════════
    # Experiment 4 (BONUS): CNN-GRU + Mel (150 features)

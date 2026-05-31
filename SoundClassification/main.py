@@ -124,15 +124,15 @@ def main():
    # ═════════════════════════════════════════════════════════════════════════
    # Experiment 1: GRU + Mel Spectrogram (150 features)
    # ═════════════════════════════════════════════════════════════════════════
-   print("\n" + "═" * 70)
-   print("Experiment 1 of 4 – GRU + Mel Spectrogram (150 features)")
-   print("═" * 70)
-
-   train_l, val_l, test_l = build_loaders("mel")
-   model_mel = EnvironmentalGRUClassifier(input_size=150)
-   results["GRU-Mel"] = run_experiment(
-       "GRU-Mel", model_mel, train_l, val_l, test_l
-   )
+   # print("\n" + "═" * 70)
+   # print("Experiment 1 of 4 – GRU + Mel Spectrogram (150 features)")
+   # print("═" * 70)
+   #
+   # train_l, val_l, test_l = build_loaders("mel")
+   # model_mel = EnvironmentalGRUClassifier(input_size=150)
+   # results["GRU-Mel"] = run_experiment(
+   #     "GRU-Mel", model_mel, train_l, val_l, test_l
+   # )
 
    # ═════════════════════════════════════════════════════════════════════════
    # Experiment 2: GRU + Energy (1 feature)

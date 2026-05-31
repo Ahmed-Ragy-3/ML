@@ -1,0 +1,105 @@
+══════════════════════════════════════════════════════════════════════
+Experiment 1 of 4 – GRU + Mel Spectrogram (150 features)
+══════════════════════════════════════════════════════════════════════
+[MEL] Preprocessing folds [1, 2, 3, 4, 5, 6] ...
+[MEL] Done – 5435 samples ready.
+[MEL] Preprocessing folds [7, 8] ...
+[MEL] Done – 1644 samples ready.
+[MEL] Preprocessing folds [9, 10] ...
+[MEL] Done – 1653 samples ready.
+[GRU-Mel] Trainer on device: cpu
+
+[GRU-Mel] ── Training for up to 15 epochs ──
+  Epoch 01/15 | Train Loss: 1.2771  Acc: 56.85% | Val Loss: 1.2655  Acc: 59.43%
+    → Improvement! Checkpoint saved to 'GRU-Mel_best.pth'
+  Epoch 02/15 | Train Loss: 0.7362  Acc: 75.69% | Val Loss: 1.1969  Acc: 65.88%
+    → Improvement! Checkpoint saved to 'GRU-Mel_best.pth'
+  Epoch 03/15 | Train Loss: 0.5510  Acc: 82.21% | Val Loss: 1.1487  Acc: 64.11%
+    → Improvement! Checkpoint saved to 'GRU-Mel_best.pth'
+  Epoch 04/15 | Train Loss: 0.4351  Acc: 85.63% | Val Loss: 1.1747  Acc: 63.63%
+  Epoch 05/15 | Train Loss: 0.3550  Acc: 89.00% | Val Loss: 1.2114  Acc: 66.06%
+  Epoch 06/15 | Train Loss: 0.3126  Acc: 89.75% | Val Loss: 1.2559  Acc: 67.34%
+  Epoch 07/15 | Train Loss: 0.1824  Acc: 94.35% | Val Loss: 1.2454  Acc: 67.70%
+  Epoch 08/15 | Train Loss: 0.1330  Acc: 96.01% | Val Loss: 1.1267  Acc: 71.53%
+    → Improvement! Checkpoint saved to 'GRU-Mel_best.pth'
+  Epoch 09/15 | Train Loss: 0.1294  Acc: 96.01% | Val Loss: 1.2018  Acc: 70.56%
+  Epoch 10/15 | Train Loss: 0.1089  Acc: 96.95% | Val Loss: 1.2510  Acc: 69.89%
+  Epoch 11/15 | Train Loss: 0.1113  Acc: 96.71% | Val Loss: 1.2235  Acc: 71.29%
+  Epoch 12/15 | Train Loss: 0.0617  Acc: 98.49% | Val Loss: 1.2598  Acc: 72.08%
+  Epoch 13/15 | Train Loss: 0.0475  Acc: 98.93% | Val Loss: 1.3487  Acc: 69.34%
+  Early stopping at epoch 13.
+  Training history saved to 'GRU-Mel_best_history.png'
+
+[GRU-Mel] ── Final Evaluation on Test Set ──
+  Test Accuracy : 66.73%
+  Test F1-Score : 0.6851
+  Confusion matrix saved to 'GRU-Mel_confusion_matrix.png'
+══════════════════════════════════════════════════════════════════════
+Experiment 2 of 4 – GRU + Energy (1 feature)
+══════════════════════════════════════════════════════════════════════
+[ENERGY] Preprocessing folds [1, 2, 3, 4, 5, 6] ...
+[ENERGY] Done – 5435 samples ready.
+[ENERGY] Preprocessing folds [7, 8] ...
+[ENERGY] Done – 1644 samples ready.
+[ENERGY] Preprocessing folds [9, 10] ...
+[ENERGY] Done – 1653 samples ready.
+[GRU-Energy] Trainer on device: cpu
+
+[GRU-Energy] ── Training for up to 15 epochs ──
+  Epoch 01/15 | Train Loss: 2.0202  Acc: 26.42% | Val Loss: 1.8738  Acc: 38.02%
+    → Improvement! Checkpoint saved to 'GRU-Energy_best.pth'
+  Epoch 02/15 | Train Loss: 1.7734  Acc: 37.07% | Val Loss: 1.7321  Acc: 40.57%
+    → Improvement! Checkpoint saved to 'GRU-Energy_best.pth'
+  Epoch 03/15 | Train Loss: 1.6445  Acc: 41.56% | Val Loss: 1.7406  Acc: 41.61%
+  Epoch 04/15 | Train Loss: 1.5650  Acc: 44.54% | Val Loss: 1.6542  Acc: 41.48%
+    → Improvement! Checkpoint saved to 'GRU-Energy_best.pth'
+  Epoch 05/15 | Train Loss: 1.5109  Acc: 46.66% | Val Loss: 1.5954  Acc: 46.17%
+    → Improvement! Checkpoint saved to 'GRU-Energy_best.pth'
+  Epoch 06/15 | Train Loss: 1.4840  Acc: 47.25% | Val Loss: 1.5627  Acc: 46.23%
+    → Improvement! Checkpoint saved to 'GRU-Energy_best.pth'
+  Epoch 07/15 | Train Loss: 1.4476  Acc: 48.35% | Val Loss: 1.5680  Acc: 46.65%
+  Epoch 08/15 | Train Loss: 1.4163  Acc: 49.73% | Val Loss: 1.5507  Acc: 46.29%
+    → Improvement! Checkpoint saved to 'GRU-Energy_best.pth'
+  Epoch 09/15 | Train Loss: 1.4007  Acc: 50.03% | Val Loss: 1.5395  Acc: 47.14%
+    → Improvement! Checkpoint saved to 'GRU-Energy_best.pth'
+  Epoch 10/15 | Train Loss: 1.3710  Acc: 51.17% | Val Loss: 1.5812  Acc: 48.18%
+  Epoch 11/15 | Train Loss: 1.3476  Acc: 52.33% | Val Loss: 1.5809  Acc: 46.35%
+  Epoch 12/15 | Train Loss: 1.3392  Acc: 52.82% | Val Loss: 1.5584  Acc: 45.68%
+  Epoch 13/15 | Train Loss: 1.2825  Acc: 55.03% | Val Loss: 1.5029  Acc: 47.45%
+    → Improvement! Checkpoint saved to 'GRU-Energy_best.pth'
+  Epoch 14/15 | Train Loss: 1.2702  Acc: 55.44% | Val Loss: 1.5352  Acc: 47.32%
+  Epoch 15/15 | Train Loss: 1.2613  Acc: 55.69% | Val Loss: 1.5289  Acc: 46.41%
+  Training history saved to 'GRU-Energy_best_history.png'
+
+[GRU-Energy] ── Final Evaluation on Test Set ──
+  Test Accuracy : 53.60%
+  Test F1-Score : 0.5386
+  Confusion matrix saved to 'GRU-Energy_confusion_matrix.png'
+══════════════════════════════════════════════════════════════════════
+Experiment 3 of 4 – GRU + MFCC (40 features)
+══════════════════════════════════════════════════════════════════════
+[MFCC] Preprocessing folds [1, 2, 3, 4, 5, 6] ...
+[MFCC] Done – 5435 samples ready.
+[MFCC] Preprocessing folds [7, 8] ...
+[MFCC] Done – 1644 samples ready.
+[MFCC] Preprocessing folds [9, 10] ...
+[MFCC] Done – 1653 samples ready.
+[GRU-MFCC] Trainer on device: cpu
+
+[GRU-MFCC] ── Training for up to 15 epochs ──
+  Epoch 01/15 | Train Loss: 1.4572  Acc: 49.00% | Val Loss: 1.2983  Acc: 58.03%
+    → Improvement! Checkpoint saved to 'GRU-MFCC_best.pth'
+  Epoch 02/15 | Train Loss: 0.9087  Acc: 69.71% | Val Loss: 1.1830  Acc: 61.13%
+    → Improvement! Checkpoint saved to 'GRU-MFCC_best.pth'
+  Epoch 03/15 | Train Loss: 0.6864  Acc: 78.01% | Val Loss: 1.2199  Acc: 63.26%
+  Epoch 04/15 | Train Loss: 0.5617  Acc: 82.01% | Val Loss: 1.2160  Acc: 64.23%
+  Epoch 05/15 | Train Loss: 0.4493  Acc: 85.23% | Val Loss: 1.2794  Acc: 61.98%
+  Epoch 06/15 | Train Loss: 0.3173  Acc: 90.14% | Val Loss: 1.1902  Acc: 66.24%
+  Epoch 07/15 | Train Loss: 0.2642  Acc: 91.89% | Val Loss: 1.3114  Acc: 63.38%
+  Early stopping at epoch 7.
+  Training history saved to 'GRU-MFCC_best_history.png'
+
+[GRU-MFCC] ── Final Evaluation on Test Set ──
+  Test Accuracy : 56.56%
+  Test F1-Score : 0.5696
+  Confusion matrix saved to 'GRU-MFCC_confusion_matrix.png'

@@ -119,8 +119,8 @@ class UrbanSoundFeatureDataset(Dataset):
       return waveform  # shape: (1, time)
 
    def _normalize(self, x: torch.Tensor) -> torch.Tensor:
-      """Zero-mean, unit-variance normalisation."""
-      return (x - x.mean()) / (x.std() + 1e-9)
+       """Zero-mean, unit-variance normalisation."""
+       return (x - x.mean()) / (x.std(unbiased=False) + 1e-9)
 
    # ── Feature extraction ────────────────────────────────────────────────────
 
@@ -136,13 +136,19 @@ class UrbanSoundFeatureDataset(Dataset):
          feat = spec.squeeze(0).transpose(0, 1)       # (T, 150)
 
       elif self.feature_type == "energy":
-         # Frame-level RMS energy computed over the same windows as FFT
-         # waveform: (1, N)
-         signal = waveform.squeeze(0)                 # (N,)
-         # unfold into overlapping frames
-         frames = signal.unfold(0, N_FFT, HOP_LENGTH)  # (T, n_fft)
-         rms = frames.pow(2).mean(dim=-1, keepdim=True).sqrt()  # (T, 1)
-         feat = rms                                 # (T, 1)
+
+          signal = waveform.squeeze(0)
+
+          if signal.numel() < N_FFT:
+              pad = N_FFT - signal.numel()
+
+              signal = torch.nn.functional.pad(signal, (0, pad))
+
+          frames = signal.unfold(0, N_FFT, HOP_LENGTH)
+
+          rms = frames.pow(2).mean(dim=-1, keepdim=True).sqrt()
+
+          feat = rms                              # (T, 1)
 
       elif self.feature_type == "mfcc":
          mfcc = self.mfcc_transform(waveform)         # (1, n_mfcc, T)

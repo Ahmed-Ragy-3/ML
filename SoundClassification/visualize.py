@@ -31,7 +31,7 @@ SAMPLE_RATE = 22_050
 N_FFT = 1024
 HOP_LENGTH = 512
 N_MELS = 150
-N_MFCC = 40
+N_MFCC = 14
 
 CLASS_NAMES = [
     "air_conditioner", "car_horn", "children_playing", "dog_bark",

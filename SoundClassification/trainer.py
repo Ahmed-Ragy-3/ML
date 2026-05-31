@@ -67,7 +67,7 @@ class ModelTrainer:
             self.model.parameters(), lr=learning_rate, weight_decay=1e-3
         )
         self.scheduler = torch.optim.lr_scheduler.ReduceLROnPlateau(
-            self.optimizer, mode="min", factor=0.5, patience=2, verbose=False
+            self.optimizer, mode="min", factor=0.5, patience=2
         )
 
         self.best_val_loss = float("inf")
